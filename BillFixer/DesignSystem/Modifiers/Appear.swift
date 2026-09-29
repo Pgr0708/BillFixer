@@ -67,6 +67,9 @@ struct FloatingEffect: ViewModifier {
 }
 
 extension View {
+    /// Selection haptic whenever a control's value changes (toggles, pickers, sliders, steppers, date pickers).
+    func hapticOnChange<V: Equatable>(_ value: V) -> some View { onChange(of: value) { _, _ in Haptics.selection() } }
+
     func staggeredAppear(_ index: Int, offset: CGFloat = 18) -> some View { modifier(StaggeredAppear(index: index, offset: offset)) }
     func shake(_ trigger: Int) -> some View { modifier(ShakeEffect(animatableData: CGFloat(trigger))).animation(.linear(duration: 0.4), value: trigger) }
     func shimmer() -> some View { modifier(Shimmer()) }

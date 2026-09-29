@@ -22,7 +22,7 @@ struct CaseDetailView: View {
                 content(model)
             } else {
                 ZStack {
-                    LinearGradient(colors: [Color(hex: 0xEEF4FF), Color(hex: 0xF7F9FD)], startPoint: .topLeading, endPoint: .bottomTrailing).ignoresSafeArea()
+                    ScenicBackground(scene: .cases)
                     ProgressView()
                 }
             }
@@ -39,7 +39,7 @@ struct CaseDetailView: View {
         if let info = model.info {
             ZStack {
                 // Soft background
-                LinearGradient(colors: [Color(hex: 0xEEF4FF), Color(hex: 0xF7F9FD)], startPoint: .topLeading, endPoint: .bottomTrailing).ignoresSafeArea()
+                ScenicBackground(scene: .cases)
                 // Circle decorations
                 Circle().fill(Color(hex: 0x2E7DF6).opacity(0.05)).frame(width: 260).offset(x: 160, y: -120)
                 Circle().fill(Color(hex: 0x00BFA5).opacity(0.05)).frame(width: 200).offset(x: -110, y: 500)
@@ -156,30 +156,39 @@ struct CaseDetailView: View {
 
     private var tabs: some View {
         ScrollView(.horizontal) {
-            HStack(spacing: 6) {
+            HStack(spacing: 4) {
                 ForEach(Tab.allCases) { t in
+                    let isActive = tab == t
                     Button {
                         Haptics.selection()
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) { tab = t }
                     } label: {
                         Text(t.rawValue)
                             .font(.system(size: 13, weight: .bold))
-                            .foregroundStyle(tab == t ? .white : BFColor.text3)
-                            .padding(.horizontal, 16).padding(.vertical, 9)
-                            .background(
-                                tab == t
-                                ? AnyShapeStyle(LinearGradient(colors: [BFColor.teal, Color(hex: 0x00897B)], startPoint: .leading, endPoint: .trailing))
-                                : AnyShapeStyle(Color.clear),
-                                in: Capsule()
-                            )
-                            .shadow(color: tab == t ? BFColor.teal.opacity(0.3) : .clear, radius: 6, y: 2)
+                            .foregroundStyle(isActive ? .white : Color(hex: 0x8492AB))
+                            .padding(.horizontal, 14).padding(.vertical, 9)
+                            .background {
+                                Capsule()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [Color(hex: 0x00BFA5), Color(hex: 0x00897B)],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
+                                    )
+                                    .opacity(isActive ? 1 : 0)
+                                    .shadow(color: Color(hex: 0x00BFA5).opacity(isActive ? 0.35 : 0), radius: 6, y: 2)
+                            }
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isActive)
                 }
             }
             .padding(5)
-            .background(Color.white, in: Capsule())
-            .shadow(color: .black.opacity(0.06), radius: 8, y: 3)
+            .background {
+                Capsule().fill(BFColor.surface)
+                    .shadow(color: .black.opacity(0.07), radius: 10, y: 3)
+            }
         }
         .scrollIndicators(.hidden)
     }
@@ -261,7 +270,7 @@ struct CaseDetailView: View {
             }
         }
         .padding(14)
-        .background(Color.white)
+        .background(BFColor.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: .black.opacity(0.04), radius: 6, y: 2)
     }
@@ -275,7 +284,7 @@ struct CaseDetailView: View {
                     .overlay { Image(systemName: "doc.badge.plus").font(.system(size: 16, weight: .semibold)).foregroundStyle(BFColor.blue) }
                 Text("No documents yet.").font(.system(size: 15)).foregroundStyle(BFColor.text3)
             }
-            .padding(16).background(Color.white)
+            .padding(16).background(BFColor.surface)
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             .shadow(color: .black.opacity(0.04), radius: 6, y: 2)
         } else {
@@ -299,7 +308,7 @@ struct CaseDetailView: View {
                     Spacer()
                     if let c = doc.ocrConfidence { Pill(text: "\(Int(c * 100))%", tone: c < 0.7 ? .amber : .green, small: true) }
                 }
-                .padding(14).background(Color.white)
+                .padding(14).background(BFColor.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 .shadow(color: .black.opacity(0.04), radius: 6, y: 2)
             }
@@ -344,7 +353,7 @@ struct CaseDetailView: View {
                 Text("Letters and phone scripts you create will be saved here.")
                     .font(.system(size: 14)).foregroundStyle(BFColor.text3)
             }
-            .padding(16).background(Color.white)
+            .padding(16).background(BFColor.surface)
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             .shadow(color: .black.opacity(0.04), radius: 6, y: 2)
         }
@@ -368,7 +377,7 @@ struct CaseDetailView: View {
                     Circle().fill(BFColor.line.opacity(0.5)).frame(width: 28, height: 28)
                         .overlay { Image(systemName: "chevron.right").font(.system(size: 11, weight: .bold)).foregroundStyle(BFColor.text4) }
                 }
-                .padding(14).background(Color.white)
+                .padding(14).background(BFColor.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 .shadow(color: .black.opacity(0.04), radius: 6, y: 2)
             }.buttonStyle(.pressable)
@@ -386,7 +395,7 @@ struct CaseDetailView: View {
                     Circle().fill(BFColor.line.opacity(0.5)).frame(width: 28, height: 28)
                         .overlay { Image(systemName: "chevron.right").font(.system(size: 11, weight: .bold)).foregroundStyle(BFColor.text4) }
                 }
-                .padding(14).background(Color.white)
+                .padding(14).background(BFColor.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 .shadow(color: .black.opacity(0.04), radius: 6, y: 2)
             }.buttonStyle(.pressable)
@@ -401,7 +410,7 @@ struct CaseDetailView: View {
                     .overlay { Image(systemName: "clock.badge.plus").font(.system(size: 16, weight: .semibold)).foregroundStyle(BFColor.violet) }
                 Text("Nothing here yet.").font(.system(size: 15)).foregroundStyle(BFColor.text3)
             }
-            .padding(16).background(Color.white)
+            .padding(16).background(BFColor.surface)
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             .shadow(color: .black.opacity(0.04), radius: 6, y: 2)
         } else {
@@ -410,7 +419,7 @@ struct CaseDetailView: View {
                     TimelineRow(event: e, isLast: i == model.events.count - 1).staggeredAppear(i)
                 }
             }
-            .background(Color.white)
+            .background(BFColor.surface)
             .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
             .shadow(color: .black.opacity(0.05), radius: 8, y: 3)
         }
@@ -426,7 +435,7 @@ struct CaseDetailView: View {
             .clipShape(Capsule())
             .shadow(color: BFColor.violet.opacity(0.3), radius: 10, y: 4)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
     }
 
     // MARK: Sheets

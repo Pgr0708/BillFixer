@@ -68,6 +68,7 @@ struct EOBReviewView: View {
                                 ForEach(NetworkStatus.allCases) { Text($0.title).tag($0) }
                             }
                             .pickerStyle(.segmented)
+                            .hapticOnChange(d.wrappedValue.networkStatus)
                         }
                         f("Amount Billed", d.billedAmount, .billedAmount, "0.00", .decimalPad)
                         f("Allowed Amount", d.allowedAmount, .allowedAmount, "0.00", .decimalPad)

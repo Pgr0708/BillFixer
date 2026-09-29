@@ -48,6 +48,7 @@ final class AppRouter {
     }
 
     func push(_ route: Route, on tab: AppTab? = nil) {
+        Haptics.tapLight()
         let t = tab ?? self.tab
         if t != self.tab { self.tab = t }
         paths[t, default: NavigationPath()].append(route)

@@ -11,11 +11,7 @@ struct FindingsListView: View {
     var body: some View {
         ZStack {
             // Background
-            LinearGradient(
-                colors: [Color(hex: 0xFFF8F0), Color(hex: 0xF7F9FD)],
-                startPoint: .topLeading, endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            ScenicBackground(scene: .finding)
             circleDecorations
 
             ScrollView {
@@ -121,15 +117,15 @@ struct FindingsListView: View {
                     .overlay {
                         Image(systemName: "lock.fill")
                             .font(.system(size: 16, weight: .semibold))
-                            .foregroundStyle(Color(hex: 0xB45309))
+                            .foregroundStyle(Color(light: 0xB45309, dark: 0xFFCB5C))
                     }
                 VStack(alignment: .leading, spacing: 2) {
                     Text("\(locked) more finding\(locked == 1 ? "" : "s") on this bill")
                         .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(Color(hex: 0x78350F))
+                        .foregroundStyle(Color(light: 0x78350F, dark: 0xFFE2A6))
                     Text("Upgrade to see every issue we found")
                         .font(.system(size: 12))
-                        .foregroundStyle(Color(hex: 0x92400E))
+                        .foregroundStyle(Color(light: 0x92400E, dark: 0xFFD27A))
                 }
                 Spacer()
                 Circle()
@@ -138,7 +134,7 @@ struct FindingsListView: View {
                     .overlay {
                         Image(systemName: "chevron.right")
                             .font(.system(size: 11, weight: .bold))
-                            .foregroundStyle(Color(hex: 0xB45309))
+                            .foregroundStyle(Color(light: 0xB45309, dark: 0xFFCB5C))
                     }
             }
             .padding(14)
@@ -147,7 +143,7 @@ struct FindingsListView: View {
             .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .strokeBorder(Color(hex: 0xFCD34D).opacity(0.5), lineWidth: 1))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
     }
 
     // MARK: - Empty state

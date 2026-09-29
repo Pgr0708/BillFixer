@@ -17,6 +17,7 @@ nonisolated struct RefreshRequest: Encodable, Sendable { let refreshToken: Strin
 nonisolated struct ForgotPasswordRequest: Encodable, Sendable { let email: String }
 nonisolated struct ResetPasswordRequest: Encodable, Sendable { let email: String; let code: String; let newPassword: String }
 nonisolated struct PatchMeRequest: Encodable, Sendable { let displayName: String }
+nonisolated struct ChangeEmailRequest: Encodable, Sendable { let email: String; let currentPassword: String? }
 
 nonisolated struct CreateCaseRequest: Encodable, Sendable { let title: String; let billDate: String?; let serviceType: String? }
 nonisolated struct PatchCaseRequest: Encodable, Sendable {

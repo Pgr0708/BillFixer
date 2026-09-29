@@ -17,7 +17,7 @@ struct BillReviewView: View {
                 }
                 if !model.billDraft.lowConfidence.isEmpty {
                     Label("\(model.billDraft.lowConfidence.count) field\(model.billDraft.lowConfidence.count == 1 ? "" : "s") need review", systemImage: "exclamationmark.triangle.fill")
-                        .font(BFFont.label(14)).foregroundStyle(Color(hex: 0xB86E00))
+                        .font(BFFont.label(14)).foregroundStyle(Color(light: 0xB86E00, dark: 0xFFCB5C))
                         .padding(12).frame(maxWidth: .infinity, alignment: .leading)
                         .background(BFColor.amberSoft, in: RoundedRectangle(cornerRadius: 14))
                 }

@@ -11,7 +11,7 @@ struct ResultsOverviewView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(colors: [Color(hex: 0xF5F0FF), Color(hex: 0xF7F9FD)], startPoint: .topLeading, endPoint: .bottomTrailing).ignoresSafeArea()
+            ScenicBackground(scene: .results)
             Circle().fill(BFColor.violetSoft).frame(width: 260).blur(radius: 30).offset(x: 160, y: -130)
             Circle().fill(BFColor.amberSoft).frame(width: 220).blur(radius: 30).offset(x: -120, y: 500)
 
@@ -68,7 +68,7 @@ struct ResultsOverviewView: View {
                 .frame(maxWidth: .infinity)
             }
             .padding(20)
-            .background(Color.white)
+            .background(BFColor.surface)
             .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
             .shadow(color: .black.opacity(0.06), radius: 12, y: 4)
             .staggeredAppear(1)
@@ -90,7 +90,7 @@ struct ResultsOverviewView: View {
                 .clipShape(Capsule())
                 .shadow(color: Color(hex: 0x2E7DF6).opacity(0.35), radius: 14, y: 6)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.pressable)
             .staggeredAppear(3)
 
             // Recommended first step
@@ -113,7 +113,7 @@ struct ResultsOverviewView: View {
                             Circle().fill(BFColor.line.opacity(0.5)).frame(width: 28, height: 28)
                                 .overlay { Image(systemName: "chevron.right").font(.system(size: 11, weight: .bold)).foregroundStyle(BFColor.text4) }
                         }
-                        .padding(14).background(Color.white)
+                        .padding(14).background(BFColor.surface)
                         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                         .shadow(color: .black.opacity(0.05), radius: 6, y: 2)
                     }.buttonStyle(.pressable)
@@ -158,7 +158,7 @@ struct ResultsOverviewView: View {
                 Circle().fill(BFColor.line.opacity(0.5)).frame(width: 28, height: 28)
                     .overlay { Image(systemName: "chevron.right").font(.system(size: 11, weight: .bold)).foregroundStyle(BFColor.text4) }
             }
-            .padding(14).background(Color.white)
+            .padding(14).background(BFColor.surface)
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             .shadow(color: .black.opacity(0.05), radius: 6, y: 2)
         }.buttonStyle(.pressable)

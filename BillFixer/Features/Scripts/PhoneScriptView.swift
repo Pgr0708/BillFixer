@@ -148,7 +148,7 @@ struct PhoneScriptView: View {
                         Spacer()
                     }
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
             }
         }
         .cardStyle(padding: 16, radius: 18)

@@ -75,9 +75,12 @@ struct SourcePicker: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            option(.camera, "camera.fill", "Take a Photo", "Scan with your camera", BFColor.blue, BFColor.blueSoft)
-            option(.photos, "photo.on.rectangle.angled", "Import from Photos", "Choose existing photos", BFColor.teal, BFColor.tealSoft)
-            option(.pdf, "doc.fill", "Import PDF", "From Files, Mail or other apps", BFColor.violet, BFColor.violetSoft)
+            option(.camera, "camera", "Take a Photo", "Scan with your camera", [0x6FA8FF, 0x2468FF])
+                .staggeredAppear(1)
+            option(.photos, "photo", "Import from Photos", "Choose existing photos", [0xB3A0FF, 0x7C5CFF])
+                .staggeredAppear(2)
+            option(.pdf, "doc", "Import PDF", "From Files, Mail or other apps", [0xFF8A7A, 0xE5484D])
+                .staggeredAppear(3)
         }
         .fullScreenCover(isPresented: $showScanner) {
             DocumentScannerView { images in
@@ -102,9 +105,28 @@ struct SourcePicker: View {
         }
     }
 
-    private func option(_ source: CaptureSource, _ symbol: String, _ title: String, _ subtitle: String, _ tint: Color, _ fill: Color) -> some View {
-        Button { open(source) } label: { ActionRow(symbol: symbol, title: title, subtitle: subtitle, tint: tint, fill: fill) }
-            .buttonStyle(.pressable)
+    /// Board 07 row: bold gradient circle icon, title, subtitle, chevron.
+    private func option(_ source: CaptureSource, _ symbol: String, _ title: String, _ subtitle: String, _ colors: [UInt32]) -> some View {
+        Button { open(source) } label: {
+            HStack(spacing: 14) {
+                Image(systemName: symbol)
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 50, height: 50)
+                    .background(LinearGradient(colors: colors.map { Color(hex: $0) }, startPoint: .topLeading, endPoint: .bottomTrailing), in: Circle())
+                    .overlay(Circle().strokeBorder(.white.opacity(0.35), lineWidth: 1.5))
+                    .shadow(color: Color(hex: colors[1]).opacity(0.4), radius: 8, y: 4)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(title).font(.system(size: 17, weight: .bold)).foregroundStyle(BFColor.text1)
+                    Text(subtitle).font(.system(size: 14)).foregroundStyle(BFColor.text3)
+                }
+                Spacer(minLength: 4)
+                Image(systemName: "chevron.right").font(.system(size: 14, weight: .bold)).foregroundStyle(BFColor.text4)
+            }
+            .cardStyle(padding: 16, radius: 22)
+        }
+        .buttonStyle(.pressable)
+        .accessibilityElement(children: .combine)
     }
 
     private func open(_ source: CaptureSource) {
@@ -127,14 +149,17 @@ struct CaptureOptionsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Add Your Document").font(BFFont.title(28)).foregroundStyle(BFColor.text1)
-                        Text("Upload your medical bill or EOB").font(BFFont.body).foregroundStyle(BFColor.text2)
-                    }
+                HStack {
                     Spacer()
                     IconButton(symbol: "xmark", label: "Close", action: onClose)
                 }
+                VStack(spacing: 6) {
+                    Text("Add Your Document").font(BFFont.title(28)).foregroundStyle(BFColor.text1)
+                    Text("Upload your medical bill or EOB").font(BFFont.body).foregroundStyle(BFColor.text3)
+                }
+                .frame(maxWidth: .infinity)
+                .multilineTextAlignment(.center)
+                .staggeredAppear(0)
                 SourcePicker(model: model, autoStart: $initialSource)
                 tipCard
                 Label("Your documents are read on this iPhone. Images are never uploaded.", systemImage: "lock.shield.fill")
@@ -147,25 +172,34 @@ struct CaptureOptionsView: View {
         .loadingOverlay(model.isProcessing, "Opening document…")
     }
 
+    /// Board 07 tip card with the girl-with-phone vector on a circle.
     private var tipCard: some View {
-        HStack(alignment: .top, spacing: 14) {
+        HStack(alignment: .bottom, spacing: 8) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("What should I upload?").font(BFFont.title3(17)).foregroundStyle(.white)
-                VStack(alignment: .leading, spacing: 5) {
-                    tip("An itemized bill works best")
-                    tip("Include every page")
-                    tip("Add your EOB from your insurer next")
-                }
+                Text("What should I upload?").font(BFFont.title3(17)).foregroundStyle(BFColor.text1)
+                Text("Your medical bill, your EOB, or both. Having both gives you the most accurate analysis.")
+                    .font(.system(size: 14)).foregroundStyle(BFColor.text2).lineSpacing(3)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            Spacer()
-            Image(systemName: "doc.text.magnifyingglass").font(.system(size: 46, weight: .light)).foregroundStyle(.white.opacity(0.85))
+            .padding(.vertical, 20)
+            Spacer(minLength: 0)
+            Image("GirlPhone")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 104, height: 112)
+                .floating(amplitude: 3, duration: 3.2)
+                .accessibilityHidden(true)
         }
-        .padding(18)
-        .background(BFGradient.blue, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .bfShadow(.navyButton)
-    }
-
-    private func tip(_ text: String) -> some View {
-        Label(text, systemImage: "checkmark.circle.fill").font(.system(size: 13, weight: .medium)).foregroundStyle(.white.opacity(0.92))
+        .padding(.leading, 20)
+        .padding(.trailing, 12)
+        .background {
+            ZStack(alignment: .topTrailing) {
+                RoundedRectangle(cornerRadius: 24, style: .continuous).fill(BFColor.blueSoft)
+                Circle().fill(BFColor.surface.opacity(0.55)).frame(width: 170).offset(x: 40, y: -30)
+                Circle().strokeBorder(BFColor.blue.opacity(0.2), lineWidth: 1.5).frame(width: 120).offset(x: 10, y: 40)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        }
+        .staggeredAppear(4)
     }
 }

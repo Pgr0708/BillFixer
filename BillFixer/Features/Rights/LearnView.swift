@@ -9,7 +9,7 @@ struct LearnView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(colors: [Color(hex: 0xF0F4FF), Color(hex: 0xF7F9FD)], startPoint: .topLeading, endPoint: .bottomTrailing).ignoresSafeArea()
+            ScenicBackground(scene: .learn)
             Circle().fill(BFColor.violetSoft).frame(width: 260).offset(x: 150, y: -100)
             Circle().fill(BFColor.tealSoft).frame(width: 200).offset(x: -110, y: 500)
 
@@ -63,7 +63,7 @@ struct LearnView: View {
                                         .overlay { Image(systemName: "chevron.right").font(.system(size: 11, weight: .bold)).foregroundStyle(BFColor.text4) }
                                 }
                                 .padding(14)
-                                .background(Color.white)
+                                .background(BFColor.surface)
                                 .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                                 .shadow(color: .black.opacity(0.05), radius: 6, y: 2)
                             }

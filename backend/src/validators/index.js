@@ -48,6 +48,7 @@ export const resetPassword = z.object({ email, code: z.string().regex(/^\d{6}$/,
 
 // ── Account ──
 export const patchMe = z.object({ displayName: text(120).min(1) }).strict();
+export const changeEmail = z.object({ email, currentPassword: z.string().min(1).max(128).optional() }).strict();
 
 // ── Cases ──
 export const CASE_STATUSES = ['draft', 'active', 'awaiting_response', 'resolved', 'closed'];

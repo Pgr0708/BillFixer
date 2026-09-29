@@ -64,7 +64,8 @@ struct FloatingBadge: View {
             .font(.system(size: size * 0.42, weight: .bold))
             .foregroundStyle(tint)
             .frame(width: size, height: size)
-            .background(BFColor.surface, in: RoundedRectangle(cornerRadius: size * 0.32, style: .continuous))
+            .background(BFColor.surface, in: Circle())
+            .overlay(Circle().strokeBorder(tint.opacity(0.3), lineWidth: 1.5))
             .bfShadow(.card)
             .accessibilityHidden(true)
     }

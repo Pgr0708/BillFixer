@@ -34,56 +34,59 @@ extension UIColor {
 
 /// Bill Fixer color system.
 enum BFColor {
-    // Brand
+    // Brand — tuned brighter so accents read clearly on photos, gradients and dark surfaces
     static let navy = Color(hex: 0x0B2B5C)
-    static let navy2 = Color(hex: 0x123A7A)
+    static let navy2 = Color(hex: 0x1A4A9A)
     static let navyDeep = Color(hex: 0x07203F)
-    static let blue = Color(light: 0x2E7DF6, dark: 0x5B9BFF)
-    static let blue2 = Color(hex: 0x5B9BFF)
-    static let teal = Color(light: 0x00BFA5, dark: 0x22D3BB)
-    static let teal2 = Color(hex: 0x22D3BB)
+    static let blue = Color(light: 0x2468FF, dark: 0x6FA8FF)
+    static let blue2 = Color(hex: 0x6FA8FF)
+    static let teal = Color(light: 0x00BFA5, dark: 0x2EE6C9)
+    static let teal2 = Color(hex: 0x2EE6C9)
 
     // Semantic
-    static let green = Color(light: 0x22C07A, dark: 0x3BDC93)
-    static let amber = Color(light: 0xF5A623, dark: 0xFFC554)
-    static let amber2 = Color(hex: 0xFFC554)
-    static let red = Color(light: 0xEF4444, dark: 0xF87171)
-    static let violet = Color(light: 0x7C6BFF, dark: 0x9B8CFF)
-    static let pink = Color(hex: 0xFF8FB1)
+    static let green = Color(light: 0x16B86A, dark: 0x4AE69B)
+    static let amber = Color(light: 0xF59E0B, dark: 0xFFCB5C)
+    static let amber2 = Color(hex: 0xFFCB5C)
+    static let red = Color(light: 0xEF3B3B, dark: 0xFF7A7A)
+    static let violet = Color(light: 0x6D5BFF, dark: 0xB3A6FF)
+    static let pink = Color(hex: 0xFF7AA8)
 
-    // Tinted surfaces
-    static let blueSoft = Color(light: 0xE8F1FE, dark: 0x16233A)
-    static let bluePale = Color(light: 0xF4F8FF, dark: 0x111A2B)
-    static let tealSoft = Color(light: 0xE2F9F5, dark: 0x0F2A27)
-    static let greenSoft = Color(light: 0xE6F9EF, dark: 0x12281D)
-    static let amberSoft = Color(light: 0xFFF5E2, dark: 0x2A2313)
-    static let redSoft = Color(light: 0xFEF0F0, dark: 0x2A1618)
-    static let violetSoft = Color(light: 0xF0EDFF, dark: 0x1E1B36)
+    // Tinted surfaces — more saturated so icon circles and pills pop
+    static let blueSoft = Color(light: 0xDDEAFF, dark: 0x1D3157)
+    static let bluePale = Color(light: 0xEEF4FF, dark: 0x15213C)
+    static let tealSoft = Color(light: 0xD3F7F0, dark: 0x113F3A)
+    static let greenSoft = Color(light: 0xD9F6E7, dark: 0x163A2B)
+    static let amberSoft = Color(light: 0xFFEFCF, dark: 0x3F3114)
+    static let redSoft = Color(light: 0xFFE3E3, dark: 0x45202A)
+    static let violetSoft = Color(light: 0xE8E3FF, dark: 0x2D2757)
 
     // Text
-    static let text1 = Color(light: 0x14213D, dark: 0xE6EBF4)
-    static let text2 = Color(light: 0x4A5A75, dark: 0xA9B4C7)
-    static let text3 = Color(light: 0x8492AB, dark: 0x7C8899)
-    static let text4 = Color(light: 0xB4BECE, dark: 0x4E5A6D)
+    static let text1 = Color(light: 0x101B36, dark: 0xF4F7FD)
+    static let text2 = Color(light: 0x3E4D69, dark: 0xC3CEE2)
+    static let text3 = Color(light: 0x74829E, dark: 0x97A4BE)
+    static let text4 = Color(light: 0xAFBAD0, dark: 0x5C6A88)
     static let onBrand = Color.white
 
-    // Surfaces
-    static let background = Color(light: 0xF7F9FD, dark: 0x0D1117)
-    static let surface = Color(light: 0xFFFFFF, dark: 0x161B26)
-    static let surfaceRaised = Color(light: 0xFFFFFF, dark: 0x1C2230)
-    static let line = Color(light: 0xE9EEF6, dark: 0x232B3A)
+    // Surfaces — dark mode is deep navy (not grey-black), with lifted blue-tinted cards
+    static let background = Color(light: 0xF5F8FE, dark: 0x0A1024)
+    static let surface = Color(light: 0xFFFFFF, dark: 0x16203A)
+    static let surfaceRaised = Color(light: 0xFFFFFF, dark: 0x1E2A4A)
+    static let line = Color(light: 0xE3E9F4, dark: 0x2C3A5E)
 }
 
 enum BFGradient {
-    static let navy = LinearGradient(colors: [BFColor.navy2, BFColor.navy], startPoint: .topLeading, endPoint: .bottomTrailing)
+    static let navy = LinearGradient(colors: [Color(hex: 0x2560D0), Color(hex: 0x1A3F8C), BFColor.navy], startPoint: .topLeading, endPoint: .bottomTrailing)
+    static let aurora = LinearGradient(colors: [Color(hex: 0x2468FF), Color(hex: 0x6D5BFF), Color(hex: 0x00BFA5)], startPoint: .topLeading, endPoint: .bottomTrailing)
+    static let violet = LinearGradient(colors: [Color(hex: 0xA08BFF), Color(hex: 0x6D5BFF)], startPoint: .topLeading, endPoint: .bottomTrailing)
+    static let coral = LinearGradient(colors: [Color(hex: 0xFF9A7A), Color(hex: 0xEF3B3B)], startPoint: .topLeading, endPoint: .bottomTrailing)
     static let splash = LinearGradient(stops: [
         .init(color: Color(hex: 0x0B2B5C), location: 0),
         .init(color: Color(hex: 0x123A7A), location: 0.36),
         .init(color: Color(hex: 0x1B62C4), location: 0.72),
         .init(color: Color(hex: 0x2E7DF6), location: 1),
     ], startPoint: .top, endPoint: .bottomTrailing)
-    static let blue = LinearGradient(colors: [Color(hex: 0x5B9BFF), Color(hex: 0x2E7DF6)], startPoint: .topLeading, endPoint: .bottomTrailing)
-    static let teal = LinearGradient(colors: [Color(hex: 0x22D3BB), Color(hex: 0x00BFA5)], startPoint: .topLeading, endPoint: .bottomTrailing)
+    static let blue = LinearGradient(colors: [Color(hex: 0x6FA8FF), Color(hex: 0x2468FF)], startPoint: .topLeading, endPoint: .bottomTrailing)
+    static let teal = LinearGradient(colors: [Color(hex: 0x3BEBD0), Color(hex: 0x00B89E)], startPoint: .topLeading, endPoint: .bottomTrailing)
     static let amber = LinearGradient(colors: [Color(hex: 0xFFC554), Color(hex: 0xF5A623)], startPoint: .topLeading, endPoint: .bottomTrailing)
     static let green = LinearGradient(colors: [Color(hex: 0x3BDC93), Color(hex: 0x22C07A)], startPoint: .topLeading, endPoint: .bottomTrailing)
     static let premium = LinearGradient(colors: [Color(hex: 0xFFC554), Color(hex: 0xF5A623), Color(hex: 0xE89412)], startPoint: .topLeading, endPoint: .bottomTrailing)

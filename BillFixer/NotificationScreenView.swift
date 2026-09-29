@@ -15,7 +15,7 @@ struct NotificationScreenView: View {
     @State private var appeared = false
 
     private let features: [(String, String, Color)] = [
-        ("Deadline reminders",   "calendar.badge.clock",        Color(hex: "#0F2B5B")),
+        ("Deadline reminders",   "calendar.badge.clock",        BFColor.blue),
         ("Follow-up nudges",     "arrow.uturn.forward.circle",  Color(hex: "#00897B")),
         ("Analysis updates",     "bell.badge.fill",             Color(hex: "#E8A422")),
     ]
@@ -23,7 +23,7 @@ struct NotificationScreenView: View {
     var body: some View {
         ZStack {
             // ── Background ──────────────────────────────────────────────
-            Color(hex: "#F7F9FD").ignoresSafeArea()
+            BFColor.background.ignoresSafeArea()
 
             // ── Circular decorations ─────────────────────────────────────
             circleDecorations
@@ -46,12 +46,12 @@ struct NotificationScreenView: View {
                             }
                         Text("BillFixer")
                             .font(.system(size: 19, weight: .black, design: .rounded))
-                            .foregroundStyle(Color(hex: "#0F2B5B"))
+                            .foregroundStyle(Color(light: 0x0F2B5B, dark: 0xFFFFFF))
                     }
                     Spacer()
                     Button("Skip") { continueWithoutReminders() }
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(Color(hex: "#718096"))
+                        .foregroundStyle(BFColor.text3)
                         .frame(minWidth: 44, minHeight: 44)
                 }
                 .padding(.horizontal, 24)
@@ -63,13 +63,13 @@ struct NotificationScreenView: View {
                 ZStack {
                     // Outer pulse ring
                     Circle()
-                        .strokeBorder(Color(hex: "#0F2B5B").opacity(0.10), lineWidth: 2)
+                        .strokeBorder(BFColor.blue.opacity(0.10*1.6), lineWidth: 2)
                         .frame(width: 170, height: 170)
                         .scaleEffect(appeared ? 1 : 0.6)
                         .opacity(appeared ? 1 : 0)
 
                     Circle()
-                        .fill(Color(hex: "#0F2B5B").opacity(0.07))
+                        .fill(BFColor.blue.opacity(0.07*1.6))
                         .frame(width: 148, height: 148)
                         .scaleEffect(appeared ? 1 : 0.6)
                         .opacity(appeared ? 1 : 0)
@@ -99,7 +99,7 @@ struct NotificationScreenView: View {
                 // Heading
                 Text("Stay on top of your case")
                     .font(.system(size: 30, weight: .bold, design: .rounded))
-                    .foregroundStyle(Color(hex: "#1A202C"))
+                    .foregroundStyle(BFColor.text1)
                     .multilineTextAlignment(.center)
                     .offset(y: appeared ? 0 : 20)
                     .opacity(appeared ? 1 : 0)
@@ -107,7 +107,7 @@ struct NotificationScreenView: View {
 
                 Text("Get a reminder when it's time to follow up or take action on a bill.")
                     .font(.system(size: 16))
-                    .foregroundStyle(Color(hex: "#4A5568"))
+                    .foregroundStyle(BFColor.text2)
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)
                     .padding(.top, 10)
@@ -137,7 +137,7 @@ struct NotificationScreenView: View {
                 if notificationManager.authorizationStatus == .denied {
                     Text("Notifications are off. Enable them in Settings or continue without reminders.")
                         .font(.system(size: 13))
-                        .foregroundStyle(Color(hex: "#64748B"))
+                        .foregroundStyle(BFColor.text3)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 24)
                         .padding(.top, 16)
@@ -172,7 +172,7 @@ struct NotificationScreenView: View {
                     .clipShape(Capsule())
                     .shadow(color: Color(hex: "#0F2B5B").opacity(0.3), radius: 16, y: 8)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
                 .disabled(isRequesting)
                 .padding(.horizontal, 28)
                 .scaleEffect(appeared ? 1 : 0.9)
@@ -181,7 +181,7 @@ struct NotificationScreenView: View {
 
                 Button("Continue without reminders", action: continueWithoutReminders)
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(Color(hex: "#718096"))
+                    .foregroundStyle(BFColor.text3)
                     .padding(.top, 14)
                     .padding(.bottom, 50)
                     .opacity(appeared ? 1 : 0)
@@ -225,7 +225,7 @@ struct NotificationScreenView: View {
 
             Text(title)
                 .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(Color(hex: "#253653"))
+                .foregroundStyle(BFColor.text1)
 
             Spacer()
 
@@ -240,7 +240,7 @@ struct NotificationScreenView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
-        .background(Color.white)
+        .background(BFColor.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: .black.opacity(0.05), radius: 8, y: 2)
     }
@@ -250,7 +250,7 @@ struct NotificationScreenView: View {
     private var circleDecorations: some View {
         ZStack {
             Circle()
-                .fill(Color(hex: "#0F2B5B").opacity(0.05))
+                .fill(BFColor.blue.opacity(0.05*1.6))
                 .frame(width: 300, height: 300)
                 .offset(x: 160, y: -200)
 
@@ -260,7 +260,7 @@ struct NotificationScreenView: View {
                 .offset(x: -130, y: 320)
 
             Circle()
-                .strokeBorder(Color(hex: "#0F2B5B").opacity(0.06), lineWidth: 1)
+                .strokeBorder(BFColor.blue.opacity(0.06*1.6), lineWidth: 1)
                 .frame(width: 160, height: 160)
                 .offset(x: -140, y: -140)
         }

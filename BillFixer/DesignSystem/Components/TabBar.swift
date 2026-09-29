@@ -7,24 +7,25 @@ enum AppTab: Int, CaseIterable, Identifiable {
     var symbol: String { ["house.fill", "folder", "plus", "sparkles", "gearshape"][rawValue] }
 }
 
-// MARK: - BFTabBar — matches the Claude design image exactly
-// Layout: floating white rounded-pill card
-// Active tab: teal filled circle background
-// Center Scan: elevated large blue filled circle with plus, offset up
-// Inactive: gray icon + gray label
+// MARK: - BFTabBar
+// Floating rounded pill: white in light mode, deep-navy glass in dark mode.
+// Active tab: its own bright color in a filled circle with a soft halo.
+// Center Scan: elevated gradient circle with plus, offset up.
+// Glow/fill circles are always rendered and faded with opacity — no matchedGeometryEffect
+// (a conditional matchedGeometryEffect caused the "invalid reuse after initialization failure" crash).
 
 struct BFTabBar: View {
     @Binding var selection: AppTab
     let onScan: () -> Void
-    @Namespace private var ns
+    @Environment(\.colorScheme) private var scheme
 
-    // Only non-scan tabs (2 left, 2 right)
     private let leftTabs: [AppTab]  = [.home, .cases]
     private let rightTabs: [AppTab] = [.learn, .settings]
+    private var dark: Bool { scheme == .dark }
+    private var inactive: Color { dark ? Color(hex: 0x8E9CBD) : Color(hex: 0x8A97B0) }
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            // ── Floating white pill card (always light) ──────────────────
             HStack(spacing: 0) {
                 ForEach(leftTabs)  { tab in tabItem(tab) }
                 Spacer().frame(width: 84)
@@ -33,46 +34,46 @@ struct BFTabBar: View {
             .padding(.horizontal, 6)
             .padding(.top, 12)
             .padding(.bottom, 16)
-            .background(
-                RoundedRectangle(cornerRadius: 36, style: .continuous)
-                    .fill(Color.white)
-                    .shadow(color: Color(hex: 0x2E7DF6).opacity(0.10), radius: 30, y: 10)
-                    .shadow(color: .black.opacity(0.10), radius: 8, y: 2)
-            )
+            .background(pill)
             .padding(.horizontal, 16)
-            .colorScheme(.light)               // ← ALWAYS light, never goes dark
 
-            // ── Center Scan — electric blue, elevated ─────────────────────
-            Button {
-                Haptics.tap()
-                onScan()
-            } label: {
-                ZStack {
-                    // Outer glow ring
-                    Circle()
-                        .fill(Color(hex: 0x3B8BFF).opacity(0.20))
-                        .frame(width: 76, height: 76)
-                    // Main button
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [Color(hex: 0x3B8BFF), Color(hex: 0x1A5FE0)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 62, height: 62)
-                        .shadow(color: Color(hex: 0x3B8BFF).opacity(0.60), radius: 18, y: 8)
-                    Image(systemName: "plus")
-                        .font(.system(size: 28, weight: .black))
-                        .foregroundStyle(.white)
-                }
-            }
-            .buttonStyle(.pressableQuiet)
-            .offset(y: -22)
-            .accessibilityLabel("Scan a medical bill")
+            scanButton.offset(y: -22)
         }
         .padding(.bottom, 6)
+    }
+
+    private var pill: some View {
+        RoundedRectangle(cornerRadius: 36, style: .continuous)
+            .fill(dark
+                  ? AnyShapeStyle(LinearGradient(colors: [Color(hex: 0x223262), Color(hex: 0x141D3C)], startPoint: .top, endPoint: .bottom))
+                  : AnyShapeStyle(Color.white))
+            .overlay(
+                RoundedRectangle(cornerRadius: 36, style: .continuous)
+                    .strokeBorder(LinearGradient(colors: dark ? [.white.opacity(0.24), .white.opacity(0.05)] : [Color(hex: 0xDCE7FF), .white],
+                                                 startPoint: .top, endPoint: .bottom), lineWidth: 1)
+            )
+            .shadow(color: dark ? .black.opacity(0.55) : Color(hex: 0x2468FF).opacity(0.14), radius: 26, y: 10)
+            .shadow(color: .black.opacity(dark ? 0.3 : 0.08), radius: 6, y: 2)
+    }
+
+    private var scanButton: some View {
+        Button {
+            Haptics.tap()
+            onScan()
+        } label: {
+            ZStack {
+                Circle().fill(Color(hex: 0x4F8BFF).opacity(dark ? 0.28 : 0.2)).frame(width: 78, height: 78)
+                Circle()
+                    .fill(LinearGradient(colors: [Color(hex: 0x4F9BFF), Color(hex: 0x2468FF), Color(hex: 0x6D5BFF)],
+                                         startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .frame(width: 62, height: 62)
+                    .overlay(Circle().strokeBorder(.white.opacity(dark ? 0.35 : 0.85), lineWidth: 2.5))
+                    .shadow(color: Color(hex: 0x3B8BFF).opacity(0.6), radius: 18, y: 8)
+                Image(systemName: "plus").font(.system(size: 28, weight: .black)).foregroundStyle(.white)
+            }
+        }
+        .buttonStyle(.pressableQuiet)
+        .accessibilityLabel("Scan a medical bill")
     }
 
     // MARK: - Individual tab item
@@ -80,11 +81,11 @@ struct BFTabBar: View {
     private func tabItem(_ tab: AppTab) -> some View {
         let isActive = selection == tab
         let activeColor: Color = switch tab {
-            case .home:     Color(hex: 0x00BFA5)
-            case .cases:    Color(hex: 0x2E7DF6)
-            case .learn:    Color(hex: 0x8B5CF6)
-            case .settings: Color(hex: 0x00BFA5)
-            default:        Color(hex: 0x2E7DF6)
+            case .home:     Color(hex: dark ? 0x2EE6C9 : 0x00BFA5)
+            case .cases:    Color(hex: dark ? 0x6FA8FF : 0x2468FF)
+            case .learn:    Color(hex: dark ? 0xB3A6FF : 0x7C5CFF)
+            case .settings: Color(hex: dark ? 0xFFB547 : 0xF59E0B)
+            default:        Color(hex: 0x2468FF)
         }
         return Button {
             guard selection != tab else { return }
@@ -93,24 +94,20 @@ struct BFTabBar: View {
         } label: {
             VStack(spacing: 5) {
                 ZStack {
-                    // Glow ring — always rendered, fades in/out
                     Circle()
-                        .fill(activeColor.opacity(0.18))
+                        .fill(activeColor.opacity(dark ? 0.26 : 0.18))
                         .frame(width: 52, height: 52)
                         .opacity(isActive ? 1 : 0)
                         .scaleEffect(isActive ? 1 : 0.6)
-
-                    // Fill circle — always rendered, fades in/out
                     Circle()
-                        .fill(activeColor)
+                        .fill(LinearGradient(colors: [activeColor.opacity(0.85), activeColor], startPoint: .topLeading, endPoint: .bottomTrailing))
                         .frame(width: 42, height: 42)
-                        .shadow(color: activeColor.opacity(0.45), radius: 8, y: 3)
+                        .shadow(color: activeColor.opacity(0.5), radius: 8, y: 3)
                         .opacity(isActive ? 1 : 0)
                         .scaleEffect(isActive ? 1 : 0.5)
-
                     Image(systemName: tab.symbol)
                         .font(.system(size: isActive ? 17 : 18, weight: .semibold))
-                        .foregroundStyle(isActive ? .white : Color(hex: 0xA0AEC0))
+                        .foregroundStyle(isActive ? .white : inactive)
                         .scaleEffect(isActive ? 1.05 : 1.0)
                 }
                 .frame(width: 52, height: 44)
@@ -118,7 +115,7 @@ struct BFTabBar: View {
 
                 Text(tab.title)
                     .font(.system(size: 10, weight: isActive ? .bold : .semibold))
-                    .foregroundStyle(isActive ? activeColor : Color(hex: 0xA0AEC0))
+                    .foregroundStyle(isActive ? activeColor : inactive)
             }
             .frame(maxWidth: .infinity)
             .contentShape(Rectangle())

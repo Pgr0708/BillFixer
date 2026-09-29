@@ -43,11 +43,7 @@ struct CasesListView: View {
     var body: some View {
         ZStack {
             // Background
-            LinearGradient(
-                colors: [Color(hex: 0xEEF4FF), Color(hex: 0xF7F9FD)],
-                startPoint: .topLeading, endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            ScenicBackground(scene: .cases)
             circleDecorations
 
             VStack(spacing: 0) {
@@ -58,17 +54,10 @@ struct CasesListView: View {
                     .opacity(appeared ? 1 : 0)
                     .offset(y: appeared ? 0 : -12)
 
-                // Summary pills
-                summaryRow
-                    .padding(.horizontal, 20)
-                    .padding(.top, 16)
-                    .opacity(appeared ? 1 : 0)
-                    .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.05), value: appeared)
-
-                // Filter chips
+                // Filter chips (they carry the counts — no separate summary row)
                 filterBar
                     .padding(.horizontal, 20)
-                    .padding(.top, 12)
+                    .padding(.top, 16)
                     .opacity(appeared ? 1 : 0)
                     .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.10), value: appeared)
 
@@ -130,43 +119,9 @@ struct CasesListView: View {
                     }
                     .shadow(color: Color(hex: 0x2E7DF6).opacity(0.35), radius: 10, y: 4)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.pressable)
             .accessibilityLabel("New case")
         }
-    }
-
-    // MARK: - Summary row (circular stat pills)
-
-    private var summaryRow: some View {
-        HStack(spacing: 10) {
-            statPill(value: "\(store.active.count)",   label: "Active",   color: BFColor.blue)
-            statPill(value: "\(store.resolved.count)", label: "Resolved", color: BFColor.green)
-            if store.totalSavings.value > 0 {
-                statPill(value: store.totalSavings.formatted, label: "Saved", color: BFColor.amber)
-            }
-        }
-    }
-
-    private func statPill(value: String, label: String, color: Color) -> some View {
-        HStack(spacing: 8) {
-            Circle()
-                .fill(color.opacity(0.15))
-                .frame(width: 32, height: 32)
-                .overlay {
-                    Text(value)
-                        .font(.system(size: 12, weight: .bold, design: .rounded))
-                        .foregroundStyle(color)
-                        .minimumScaleFactor(0.7)
-                }
-            Text(label)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(BFColor.text2)
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(Color.white)
-        .clipShape(Capsule())
-        .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
     }
 
     // MARK: - Filter chips
@@ -191,6 +146,8 @@ struct CasesListView: View {
                             }
                         Text("\(f.rawValue) \(count)")
                             .font(.system(size: 13, weight: .semibold))
+                            .lineLimit(1)
+                            .fixedSize()
                             .foregroundStyle(isActive ? .white : BFColor.text2)
                     }
                     .padding(.horizontal, 12)
@@ -198,12 +155,12 @@ struct CasesListView: View {
                     .background(isActive
                         ? AnyShapeStyle(LinearGradient(colors: [f.tint, f.tint.opacity(0.8)],
                                                         startPoint: .topLeading, endPoint: .bottomTrailing))
-                        : AnyShapeStyle(Color.white))
+                        : AnyShapeStyle(BFColor.surface))
                     .clipShape(Capsule())
                     .shadow(color: isActive ? f.tint.opacity(0.3) : .black.opacity(0.04),
                             radius: isActive ? 8 : 3, y: isActive ? 3 : 1)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
             }
             Spacer()
         }
@@ -235,12 +192,12 @@ struct CasesListView: View {
                                 .foregroundStyle(BFColor.text3)
                         }
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
             }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
-        .background(Color.white)
+        .background(BFColor.surface)
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .shadow(color: .black.opacity(0.04), radius: 4, y: 2)
     }
@@ -332,7 +289,7 @@ struct CasesListView: View {
                 .clipShape(Capsule())
                 .shadow(color: Color(hex: 0x2E7DF6).opacity(0.35), radius: 12, y: 6)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.pressable)
         }
         .padding(32)
     }

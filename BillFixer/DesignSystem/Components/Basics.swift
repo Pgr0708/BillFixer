@@ -5,7 +5,7 @@ struct IconTile: View {
     var tint: Color = BFColor.blue
     var fill: Color = BFColor.blueSoft
     var size: CGFloat = 44
-    var radius: CGFloat = 14
+    var radius: CGFloat = 14   // kept for call-site compatibility; tiles are circular
 
     var body: some View {
         Image(systemName: symbol)
@@ -13,7 +13,13 @@ struct IconTile: View {
             .symbolRenderingMode(.hierarchical)
             .foregroundStyle(tint)
             .frame(width: size, height: size)
-            .background(fill, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+            .background {
+                Circle()
+                    .fill(LinearGradient(colors: [fill, fill.opacity(0.75)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .overlay(Circle().fill(LinearGradient(colors: [.white.opacity(0.35), .clear], startPoint: .top, endPoint: .center)))
+                    .overlay(Circle().strokeBorder(tint.opacity(0.28), lineWidth: 1.2))
+                    .shadow(color: tint.opacity(0.22), radius: size * 0.14, y: size * 0.06)
+            }
             .accessibilityHidden(true)
     }
 }

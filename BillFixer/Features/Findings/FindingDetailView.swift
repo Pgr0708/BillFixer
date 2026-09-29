@@ -136,7 +136,7 @@ struct FindingDetailView: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(18)
-        .background(Color.white)
+        .background(BFColor.surface)
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .shadow(color: finding.severity.color.opacity(0.12), radius: 16, y: 6)
         .overlay(
@@ -171,7 +171,7 @@ struct FindingDetailView: View {
             }
         }
         .padding(18)
-        .background(Color.white)
+        .background(BFColor.surface)
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .shadow(color: .black.opacity(0.05), radius: 8, y: 3)
     }
@@ -200,7 +200,7 @@ struct FindingDetailView: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(16)
-        .background(Color.white)
+        .background(BFColor.surface)
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .shadow(color: .black.opacity(0.04), radius: 6, y: 2)
     }
@@ -227,7 +227,7 @@ struct FindingDetailView: View {
             }
         }
         .padding(16)
-        .background(Color.white)
+        .background(BFColor.surface)
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .shadow(color: .black.opacity(0.04), radius: 6, y: 2)
     }
@@ -323,7 +323,7 @@ struct FindingDetailView: View {
                 .clipShape(Capsule())
                 .shadow(color: Color(hex: 0x2E7DF6).opacity(0.35), radius: 14, y: 6)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.pressable)
 
             // Phone script button — outlined capsule
             Button {
@@ -346,12 +346,12 @@ struct FindingDetailView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: 54)
-                .background(Color.white)
+                .background(BFColor.surface)
                 .clipShape(Capsule())
                 .overlay(Capsule().strokeBorder(BFColor.teal, lineWidth: 1.5))
                 .shadow(color: .black.opacity(0.05), radius: 6, y: 2)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.pressable)
 
             // Rights button (if applicable)
             if let key = finding.kind.rightKey {
@@ -372,7 +372,7 @@ struct FindingDetailView: View {
                     .frame(maxWidth: .infinity)
                     .frame(height: 44)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
             }
 
             // Status menu

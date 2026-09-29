@@ -61,6 +61,10 @@ final class AppSession {
         user = try await auth.updateDisplayName(name)
     }
 
+    func changeEmail(_ email: String, currentPassword: String?) async throws {
+        user = try await auth.changeEmail(email, currentPassword: currentPassword)
+    }
+
     /// After a purchase/restore: ask the server to re-verify with RevenueCat.
     func syncSubscription() async {
         do { subscription = try await subscriptions.sync() } catch {
@@ -85,6 +89,7 @@ final class AppSession {
         phase = .signedOut
         await DiskCache.shared.clear()
         ReminderScheduler.cancelAll()
+        ProfilePhotoStore.shared.clearAll()
         await store.reset()
     }
 }

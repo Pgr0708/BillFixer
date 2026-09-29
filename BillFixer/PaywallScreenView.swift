@@ -107,7 +107,7 @@ struct PaywallScreenView: View {
                             .foregroundStyle(.white.opacity(0.8))
                     }
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.pressable)
             .padding(.trailing, 16)
             .padding(.top, 12)
             .accessibilityLabel("Close")
@@ -299,7 +299,7 @@ struct PaywallScreenView: View {
             .clipShape(Capsule())
             .shadow(color: Color(hex: 0xFFC554).opacity(0.45), radius: 20, y: 8)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
         .disabled(selected == nil || store.isPurchasing)
     }
 

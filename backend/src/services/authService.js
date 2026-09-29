@@ -4,7 +4,7 @@ import { config } from '../config/index.js';
 import { signAccessToken } from '../lib/jwt.js';
 import { verifyAppleIdentityToken } from '../lib/apple.js';
 import { randomToken, sha256, uuid } from '../lib/ids.js';
-import { conflict, unauthorized, unavailable, tooManyRequests, badRequest } from '../lib/errors.js';
+import { conflict, unauthorized, unavailable, tooManyRequests, badRequest, unprocessable } from '../lib/errors.js';
 import { mailEnabled, sendMail } from '../lib/mailer.js';
 import { logger } from '../lib/logger.js';
 import { mapUser } from '../repositories/mappers.js';
@@ -121,4 +121,26 @@ export async function resetPassword({ email, code, newPassword, userAgent }) {
   await tokens.markResetUsed(record.id);
   await tokens.revokeAllForUser(user.id); // sign out every other device
   return issueSession(user, userAgent);
+}
+
+/**
+ * Email change. Password accounts must re-enter their password, so a stolen access token alone
+ * can't redirect password-reset mail. Apple-only accounts have no password; Apple remains their login.
+ */
+export async function changeEmail({ userId, email, currentPassword }) {
+  const hash = await users.getPasswordHash(userId);
+  if (hash) {
+    // 422 field errors (not 401): a 401 on an authenticated call means "session expired" to the app.
+    if (!currentPassword) throw unprocessable({ fields: { currentPassword: ['Enter your current password to change your email.'] } });
+    if (!(await bcrypt.compare(currentPassword, hash))) throw unprocessable({ fields: { currentPassword: ['Current password is incorrect.'] } });
+  }
+  const existing = await users.findByEmail(email);
+  if (existing && existing.id !== userId) throw conflict('That email is already used by another account.', 'EMAIL_TAKEN');
+  try {
+    await users.updateEmail(userId, email);
+  } catch (err) {
+    if (err?.code === 'ER_DUP_ENTRY') throw conflict('That email is already used by another account.', 'EMAIL_TAKEN');
+    throw err;
+  }
+  return mapUser(await users.findById(userId));
 }

@@ -79,76 +79,16 @@ struct HomeView: View {
     // MARK: - Background
 
     private var homeBackground: some View {
-        ZStack {
-            // Bright, vivid base gradient
-            LinearGradient(
-                colors: [Color(hex: 0xE0F7F4), Color(hex: 0xEBF4FF), Color(hex: 0xF5F0FF)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-
-            // Top-right vivid teal circle
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [Color(hex: 0x00BFA5).opacity(0.30), Color.clear],
-                        center: .center, startRadius: 0, endRadius: 200
-                    )
-                )
-                .frame(width: 400, height: 400)
-                .offset(x: 160, y: -140)
-
-            // Bottom-left vivid blue circle
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [Color(hex: 0x3B8BFF).opacity(0.18), Color.clear],
-                        center: .center, startRadius: 0, endRadius: 180
-                    )
-                )
-                .frame(width: 360, height: 360)
-                .offset(x: -140, y: 520)
-
-            // Mid violet accent
-            Circle()
-                .fill(Color(hex: 0x8B5CF6).opacity(0.08))
-                .frame(width: 220, height: 220)
-                .offset(x: 120, y: 380)
-
-            // Subtle stroke rings for depth
-            Circle()
-                .strokeBorder(Color(hex: 0x00BFA5).opacity(0.12), lineWidth: 1)
-                .frame(width: 280)
-                .offset(x: 140, y: -100)
-            Circle()
-                .strokeBorder(Color(hex: 0x3B8BFF).opacity(0.10), lineWidth: 1)
-                .frame(width: 220)
-                .offset(x: -100, y: 400)
-        }
+        ScenicBackground(scene: .home)
     }
-
-    // MARK: - Header Row
 
     private var headerRow: some View {
         HStack(spacing: 12) {
             // Avatar circle
             Button { router.tab = .settings } label: {
-                ZStack {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [Color(hex: 0x0B2B5C), Color(hex: 0x2E7DF6)],
-                                startPoint: .topLeading, endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 44, height: 44)
-                    Text(session.user?.initial ?? "U")
-                        .font(.system(size: 17, weight: .bold, design: .rounded))
-                        .foregroundStyle(.white)
-                }
+                ProfileAvatar(size: 44)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.pressable)
             .accessibilityLabel("Account")
 
             VStack(alignment: .leading, spacing: 2) {
@@ -166,7 +106,7 @@ struct HomeView: View {
             // Bell / reminders
             Button { showReminders = true } label: {
                 Circle()
-                    .fill(Color.white)
+                    .fill(BFColor.surface)
                     .frame(width: 40, height: 40)
                     .shadow(color: .black.opacity(0.08), radius: 8, y: 2)
                     .overlay {
@@ -175,12 +115,12 @@ struct HomeView: View {
                             .font(.system(size: 16, weight: .semibold))
                             .symbolRenderingMode(.palette)
                             .foregroundStyle(
-                                store.active.contains { $0.nextDeadline != nil } ? BFColor.red : BFColor.navy,
-                                BFColor.navy
+                                store.active.contains { $0.nextDeadline != nil } ? BFColor.red : BFColor.blue,
+                                BFColor.blue
                             )
                     }
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.pressable)
             .accessibilityLabel("Reminders")
         }
     }
@@ -193,27 +133,27 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("FREE PLAN")
                         .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(Color(hex: 0xB45309))
+                        .foregroundStyle(Color(light: 0xB45309, dark: 0xFFCB5C))
                         .tracking(0.8)
                     Text("1 of 3 findings previewed")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(Color(hex: 0x78350F))
+                        .foregroundStyle(Color(light: 0x78350F, dark: 0xFFE2A6))
                 }
                 Spacer()
                 Image(systemName: "chevron.right")
                     .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(Color(hex: 0xB45309))
+                    .foregroundStyle(Color(light: 0xB45309, dark: 0xFFCB5C))
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 14)
-            .background(Color(hex: 0xFEF3C7))
+            .background(BFColor.amberSoft)
             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
                     .strokeBorder(Color(hex: 0xFCD34D).opacity(0.6), lineWidth: 1)
             )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
     }
 
     // MARK: - Scan Hero Card
@@ -242,7 +182,7 @@ struct HomeView: View {
                         .frame(width: 56, height: 56)
                     Image(systemName: "plus")
                         .font(.system(size: 24, weight: .bold))
-                        .foregroundStyle(Color(hex: 0x2E7DF6))
+                        .foregroundStyle(BFColor.blue)
                 }
                 .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
             }
@@ -280,10 +220,10 @@ struct HomeView: View {
 
     private var quickActionsRow: some View {
         HStack(spacing: 12) {
-            quickTile("Scan Bill",  "doc.viewfinder",       Color(hex: 0x2E7DF6), Color(hex: 0xEBF4FF))  { router.startCapture(.camera) }
-            quickTile("Add EOB",    "doc.text.fill",        Color(hex: 0x00BFA5), Color(hex: 0xE0F7F4))  { router.startCapture(.photos) }
-            quickTile("Import PDF", "arrow.down.doc.fill",  Color(hex: 0x8B5CF6), Color(hex: 0xF3EEFF))  { router.startCapture(.pdf) }
-            quickTile("Help",       "questionmark.circle",  Color(hex: 0xF59E0B), Color(hex: 0xFFF8E1))  { router.tab = .learn }
+            quickTile("Scan Bill",  "doc.viewfinder",       BFColor.blue, BFColor.blueSoft)  { router.startCapture(.camera) }
+            quickTile("Add EOB",    "doc.text.fill",        BFColor.teal, BFColor.tealSoft)  { router.startCapture(.photos) }
+            quickTile("Import PDF", "arrow.down.doc.fill",  BFColor.violet, BFColor.violetSoft)  { router.startCapture(.pdf) }
+            quickTile("Help",       "questionmark.circle",  BFColor.amber, BFColor.amberSoft)  { router.tab = .learn }
         }
     }
 
@@ -304,16 +244,16 @@ struct HomeView: View {
                 }
                 Text(title)
                     .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(Color(hex: 0x374151))
+                    .foregroundStyle(BFColor.text2)
                     .lineLimit(1)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
-            .background(Color.white)
+            .background(BFColor.surface)
             .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
             .shadow(color: .black.opacity(0.06), radius: 8, y: 3)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
     }
 
     // MARK: - Savings Card
@@ -340,7 +280,7 @@ struct HomeView: View {
             Spacer()
         }
         .padding(18)
-        .background(Color.white)
+        .background(BFColor.surface)
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .shadow(color: .black.opacity(0.05), radius: 8, y: 3)
     }
@@ -369,7 +309,7 @@ struct HomeView: View {
                 case let .failed(error):
                     ErrorStateView(error: error) { Task { await store.load(force: true) } }
                         .padding(16)
-                        .background(Color.white)
+                        .background(BFColor.surface)
                         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 case .loaded:
                     emptyState
@@ -408,11 +348,11 @@ struct HomeView: View {
                     .foregroundStyle(BFColor.text4)
             }
             .padding(16)
-            .background(Color.white)
+            .background(BFColor.surface)
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             .shadow(color: .black.opacity(0.04), radius: 6, y: 2)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
     }
 
     // MARK: - Learn Card
@@ -442,11 +382,11 @@ struct HomeView: View {
                     .foregroundStyle(BFColor.text4)
             }
             .padding(16)
-            .background(Color.white)
+            .background(BFColor.surface)
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             .shadow(color: .black.opacity(0.04), radius: 6, y: 2)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
     }
 }
 

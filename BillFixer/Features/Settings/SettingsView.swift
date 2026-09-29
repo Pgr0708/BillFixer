@@ -18,11 +18,7 @@ struct SettingsView: View {
     var body: some View {
         ZStack {
             // Background
-            LinearGradient(
-                colors: [Color(hex: 0xF0F4FF), Color(hex: 0xF7F9FD)],
-                startPoint: .topLeading, endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            ScenicBackground(scene: .settings)
             circleDecorations
 
             ScrollView {
@@ -133,16 +129,7 @@ struct SettingsView: View {
         Button { router.push(.account) } label: {
             HStack(spacing: 14) {
                 // Large circular avatar
-                ZStack {
-                    Circle()
-                        .fill(LinearGradient(
-                            colors: [Color(hex: 0x0B2B5C), Color(hex: 0x2E7DF6)],
-                            startPoint: .topLeading, endPoint: .bottomTrailing))
-                        .frame(width: 56, height: 56)
-                    Text(session.user?.initial ?? "U")
-                        .font(.system(size: 22, weight: .bold, design: .rounded))
-                        .foregroundStyle(.white)
-                }
+                ProfileAvatar(size: 56)
                 VStack(alignment: .leading, spacing: 4) {
                     Text(session.user?.displayName ?? session.user?.firstName ?? "Your Account")
                         .font(.system(size: 17, weight: .bold, design: .rounded))
@@ -162,7 +149,7 @@ struct SettingsView: View {
                     }
             }
             .padding(16)
-            .background(Color.white)
+            .background(BFColor.surface)
             .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
             .shadow(color: .black.opacity(0.06), radius: 10, y: 4)
         }
@@ -212,7 +199,7 @@ struct SettingsView: View {
                     }
             }
             .padding(16)
-            .background(session.isPremium ? Color(hex: 0xFFFBEB) : Color.white)
+            .background(session.isPremium ? BFColor.amberSoft : BFColor.surface)
             .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
@@ -236,7 +223,7 @@ struct SettingsView: View {
             VStack(spacing: 0) {
                 content()
             }
-            .background(Color.white)
+            .background(BFColor.surface)
             .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
             .shadow(color: .black.opacity(0.05), radius: 8, y: 3)
         }
@@ -276,7 +263,7 @@ struct SettingsView: View {
             .padding(.vertical, 13)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
     }
 
     private func settingsToggleRow(_ symbol: String, _ title: String,
@@ -296,6 +283,7 @@ struct SettingsView: View {
             Spacer()
             Toggle("", isOn: isOn)
                 .labelsHidden()
+                .hapticOnChange(isOn.wrappedValue)
                 .tint(BFColor.teal)
         }
         .padding(.horizontal, 14)
@@ -321,6 +309,7 @@ struct SettingsView: View {
             }
             .labelsHidden()
             .tint(BFColor.text2)
+            .hapticOnChange(settings.selectedTheme)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 13)
@@ -382,136 +371,5 @@ struct SettingsView: View {
             try await session.deleteAccount()
             Toast.success("Account deleted", "All your data has been removed.")
         } catch { Toast.error(error) }
-    }
-}
-
-// MARK: - AccountView
-
-struct AccountView: View {
-    @Environment(AppSession.self) private var session
-    @State private var name = ""
-    @State private var saving = false
-
-    var body: some View {
-        ZStack {
-            LinearGradient(
-                colors: [Color(hex: 0xF0F4FF), Color(hex: 0xF7F9FD)],
-                startPoint: .topLeading, endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-
-            ScrollView {
-                VStack(spacing: 20) {
-                    // Profile header
-                    VStack(spacing: 12) {
-                        ZStack {
-                            Circle()
-                                .fill(LinearGradient(
-                                    colors: [Color(hex: 0x0B2B5C), Color(hex: 0x2E7DF6)],
-                                    startPoint: .topLeading, endPoint: .bottomTrailing))
-                                .frame(width: 80, height: 80)
-                                .shadow(color: Color(hex: 0x2E7DF6).opacity(0.3), radius: 16, y: 6)
-                            Text(session.user?.initial ?? "U")
-                                .font(.system(size: 32, weight: .bold, design: .rounded))
-                                .foregroundStyle(.white)
-                        }
-                        Text(session.user?.displayName ?? "Your Account")
-                            .font(.system(size: 20, weight: .bold, design: .rounded))
-                            .foregroundStyle(BFColor.text1)
-                        if let email = session.user?.email {
-                            Text(email)
-                                .font(.system(size: 14))
-                                .foregroundStyle(BFColor.text3)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 24)
-                    .background(Color.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                    .shadow(color: .black.opacity(0.06), radius: 12, y: 4)
-
-                    // Edit name
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("DISPLAY NAME")
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundStyle(BFColor.text3)
-                            .tracking(0.8)
-                            .padding(.leading, 4)
-
-                        HStack(spacing: 12) {
-                            Circle()
-                                .fill(BFColor.blueSoft)
-                                .frame(width: 36, height: 36)
-                                .overlay {
-                                    Image(systemName: "person.fill")
-                                        .font(.system(size: 14, weight: .semibold))
-                                        .foregroundStyle(BFColor.blue)
-                                }
-                            TextField("Display name", text: $name)
-                                .textContentType(.name)
-                                .font(.system(size: 15))
-                        }
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 13)
-                        .background(Color.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                        .shadow(color: .black.opacity(0.04), radius: 4, y: 2)
-                    }
-
-                    // Save button
-                    Button {
-                        Task {
-                            saving = true
-                            defer { saving = false }
-                            do {
-                                try await session.updateName(name.trimmed)
-                                Toast.success("Profile updated")
-                            } catch { Toast.error(error) }
-                        }
-                    } label: {
-                        Group {
-                            if saving { ProgressView().tint(.white) }
-                            else { Text("Save Changes").font(.system(size: 16, weight: .bold, design: .rounded)) }
-                        }
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 52)
-                        .background(LinearGradient(colors: [Color(hex: 0x2E7DF6), BFColor.navy],
-                                                   startPoint: .leading, endPoint: .trailing))
-                        .clipShape(Capsule())
-                        .shadow(color: Color(hex: 0x2E7DF6).opacity(0.3), radius: 12, y: 6)
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(name.trimmed.isEmpty || name.trimmed == session.user?.displayName || saving)
-
-                    // Privacy note
-                    HStack(spacing: 10) {
-                        Circle()
-                            .fill(BFColor.greenSoft)
-                            .frame(width: 36, height: 36)
-                            .overlay {
-                                Image(systemName: "lock.shield.fill")
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundStyle(BFColor.green)
-                            }
-                        Text("Bill images are read on your iPhone and never uploaded. We store only the details you confirm.")
-                            .font(.system(size: 13))
-                            .foregroundStyle(BFColor.text3)
-                            .lineSpacing(3)
-                    }
-                    .padding(14)
-                    .background(Color.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-
-                    Spacer().frame(height: 80)
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
-            }
-        }
-        .navigationTitle("Account")
-        .navigationBarTitleDisplayMode(.inline)
-        .scrollContentBackground(.hidden)
-        .onAppear { name = session.user?.displayName ?? "" }
     }
 }

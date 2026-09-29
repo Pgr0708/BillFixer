@@ -57,6 +57,7 @@ struct ResolveCaseSheet: View {
                 Section("What happened?") {
                     Picker("Outcome", selection: $resolution) { ForEach(options, id: \.0) { Text($0.1).tag($0.0) } }
                         .pickerStyle(.inline).labelsHidden()
+                        .hapticOnChange(resolution)
                 }
                 Section {
                     TextField("Final amount you owe", text: $amount).keyboardType(.decimalPad)
@@ -107,10 +108,12 @@ struct AddDeadlineSheet: View {
                 Section("Type") {
                     Picker("Type", selection: $type) { ForEach(presets, id: \.0) { Text($0.1).tag($0.0) } }
                         .pickerStyle(.inline).labelsHidden()
+                        .hapticOnChange(type)
                 }
                 Section("Details") {
                     TextField("Label", text: $label)
                     DatePicker("Due date", selection: $date, in: Date()..., displayedComponents: .date)
+                        .hapticOnChange(date)
                 }
                 Section { Label("We’ll remind you 7 days, 1 day and the morning it’s due.", systemImage: "bell.badge").font(.footnote) }
             }

@@ -58,13 +58,13 @@ struct CustomizationScreenView: View {
                 // Title
                 Text("Make it yours")
                     .font(.system(size: 30, weight: .bold, design: .rounded))
-                    .foregroundStyle(Color(hex: "#0F2B5B"))
+                    .foregroundStyle(Color(light: 0x0F2B5B, dark: 0xFFFFFF))
                     .offset(y: appeared ? 0 : 20)
                     .opacity(appeared ? 1 : 0)
 
                 Text("Pick an accent colour and appearance")
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(Color(hex: "#4A5568"))
+                    .foregroundStyle(BFColor.text2)
                     .multilineTextAlignment(.center)
                     .padding(.top, 8)
                     .offset(y: appeared ? 0 : 16)
@@ -106,7 +106,7 @@ struct CustomizationScreenView: View {
                     .clipShape(Capsule())
                     .shadow(color: Color(hex: "#0F2B5B").opacity(0.3), radius: 16, y: 8)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
                 .scaleEffect(appeared ? 1 : 0.9)
                 .opacity(appeared ? 1 : 0)
                 .padding(.horizontal, 28)
@@ -130,7 +130,7 @@ struct CustomizationScreenView: View {
         VStack(alignment: .leading, spacing: 14) {
             Label("Accent Colour", systemImage: "circle.fill")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(Color(hex: "#4A5568"))
+                .foregroundStyle(BFColor.text2)
                 .padding(.horizontal, 28)
 
             HStack(spacing: 18) {
@@ -166,7 +166,7 @@ struct CustomizationScreenView: View {
             }
             .accessibilityLabel("\(name) \(isSelected ? "selected" : "")")
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
     }
 
     // MARK: - Theme Picker
@@ -175,7 +175,7 @@ struct CustomizationScreenView: View {
         VStack(alignment: .leading, spacing: 14) {
             Label("Appearance", systemImage: "sun.max.fill")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(Color(hex: "#4A5568"))
+                .foregroundStyle(BFColor.text2)
                 .padding(.horizontal, 28)
 
             HStack(spacing: 12) {
@@ -210,7 +210,7 @@ struct CustomizationScreenView: View {
                         .fill(isSelected
                             ? LinearGradient(colors: [Color(hex: "#0F2B5B"), selectedColor.color],
                                              startPoint: .topLeading, endPoint: .bottomTrailing)
-                            : LinearGradient(colors: [Color(hex: "#EDF2F7"), Color(hex: "#EDF2F7")],
+                            : LinearGradient(colors: [BFColor.line, BFColor.line],
                                              startPoint: .top, endPoint: .bottom))
                         .frame(width: 60, height: 60)
                         .shadow(color: isSelected ? Color(hex: "#0F2B5B").opacity(0.25) : .clear,
@@ -218,23 +218,23 @@ struct CustomizationScreenView: View {
 
                     Image(systemName: icon)
                         .font(.system(size: 22, weight: .semibold))
-                        .foregroundStyle(isSelected ? .white : Color(hex: "#4A5568"))
+                        .foregroundStyle(isSelected ? .white : BFColor.text2)
                 }
 
                 Text(theme.rawValue)
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(isSelected ? Color(hex: "#0F2B5B") : Color(hex: "#718096"))
+                    .foregroundStyle(isSelected ? Color(light: 0x0F2B5B, dark: 0xFFFFFF) : BFColor.text3)
             }
             .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
     }
 
     // MARK: - Background & Decorations
 
     private var backgroundLayer: some View {
         LinearGradient(
-            colors: [Color(hex: "#F0F4FF"), Color(hex: "#E8F8F5")],
+            colors: [Color(light: 0xF0F4FF, dark: 0x0B1636), Color(light: 0xE8F8F5, dark: 0x0A1024)],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )

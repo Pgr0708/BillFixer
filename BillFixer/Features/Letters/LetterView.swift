@@ -93,7 +93,7 @@ struct LetterView: View {
         }
         .padding(24)
         .frame(maxWidth: .infinity)
-        .background(Color.white)
+        .background(BFColor.surface)
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .shadow(color: .black.opacity(0.05), radius: 8, y: 3)
     }
@@ -163,12 +163,12 @@ struct LetterView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)
-                    .background(Color.white)
+                    .background(BFColor.surface)
                     .clipShape(Capsule())
                     .overlay(Capsule().strokeBorder(BFColor.blue, lineWidth: 1.5))
                     .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
 
                 if let pdfURL {
                     ShareLink(item: pdfURL) {
@@ -215,7 +215,7 @@ struct LetterView: View {
                         .clipShape(Capsule())
                         .shadow(color: Color(hex: 0x2E7DF6).opacity(0.3), radius: 8, y: 4)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                 }
             }
 
@@ -242,7 +242,7 @@ struct LetterView: View {
                     .clipShape(Capsule())
                     .shadow(color: Color(hex: 0x00BFA5).opacity(0.35), radius: 12, y: 6)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
             }
 
             // Disclaimer with circular info icon

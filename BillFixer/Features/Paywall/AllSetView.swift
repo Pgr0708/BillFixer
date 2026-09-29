@@ -108,7 +108,7 @@ struct AllSetView: View {
                     .clipShape(Capsule())
                     .shadow(color: BFColor.teal.opacity(0.4), radius: 16, y: 6)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
                 .opacity(appeared ? 1 : 0)
                 .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.42), value: appeared)
 

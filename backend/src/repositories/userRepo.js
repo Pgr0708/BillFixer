@@ -39,6 +39,10 @@ export const setPasswordHash = (userId, hash) =>
 export const updateDisplayName = (userId, displayName) =>
   query('UPDATE users SET display_name = ? WHERE id = ?', [displayName, userId]);
 
+/** Changing email resets verification; a duplicate hits uq_users_email (ER_DUP_ENTRY). */
+export const updateEmail = (userId, email) =>
+  query('UPDATE users SET email = ?, email_verified = 0 WHERE id = ?', [email, userId]);
+
 export const touchActive = (userId) =>
   query('UPDATE users SET last_active_at = UTC_TIMESTAMP() WHERE id = ? AND (last_active_at IS NULL OR last_active_at < UTC_TIMESTAMP() - INTERVAL 1 HOUR)', [userId]);
 

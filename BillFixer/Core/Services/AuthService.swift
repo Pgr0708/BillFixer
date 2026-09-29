@@ -8,6 +8,7 @@ protocol AuthServicing {
     func resetPassword(email: String, code: String, newPassword: String) async throws -> User
     func me() async throws -> MeResponse
     func updateDisplayName(_ name: String) async throws -> User
+    func changeEmail(_ email: String, currentPassword: String?) async throws -> User
     func logout() async
     func deleteAccount() async throws
     func hasSession() async -> Bool
@@ -50,6 +51,11 @@ struct AuthService: AuthServicing {
 
     func updateDisplayName(_ name: String) async throws -> User {
         let r: UserEnvelope = try await api.send(.patch("me", PatchMeRequest(displayName: name)))
+        return r.user
+    }
+
+    func changeEmail(_ email: String, currentPassword: String?) async throws -> User {
+        let r: UserEnvelope = try await api.send(.patch("me/email", ChangeEmailRequest(email: email, currentPassword: currentPassword)))
         return r.user
     }
 

@@ -39,6 +39,7 @@ struct FinancialAssistanceView: View {
                         HStack { Text("Yearly income").font(.system(size: 15, weight: .medium)); Spacer()
                             Text(Money(Decimal(Int(income))).formattedCompact).font(BFFont.money(20)).contentTransition(.numericText()) }
                         Slider(value: $income, in: 0...250_000, step: 1_000).tint(BFColor.teal)
+                            .hapticOnChange(income)
                     }
                     BFTextField(label: "State (for Alaska & Hawaii guidelines)", text: $state, prompt: "e.g. TX", icon: "map",
                                 error: Validation.stateCode(state), autocapitalization: .characters)

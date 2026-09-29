@@ -29,7 +29,6 @@ struct MainTabView: View {
         }
         .animation(BFMotion.standard, value: network.isOnline)
         .ignoresSafeArea(.keyboard)
-        .preferredColorScheme(.light)            // ← Force light mode globally
         .environment(router)
         .environment(store)
         .fullScreenCover(isPresented: $router.isCapturePresented) {
