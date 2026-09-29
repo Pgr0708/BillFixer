@@ -183,14 +183,14 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(session.isPremium ? "Premium Active" : "Free Plan")
                         .font(.system(size: 15, weight: .bold, design: .rounded))
-                        .foregroundStyle(session.isPremium ? Color(hex: 0x78350F) : BFColor.text1)
+                        .foregroundStyle(session.isPremium ? Color(light: 0x78350F, dark: 0xFFE2A6) : BFColor.text1)
                     Text(session.isPremium ? planLabel : "Unlock all findings, letters & cases")
                         .font(.system(size: 13))
-                        .foregroundStyle(session.isPremium ? Color(hex: 0x92400E) : BFColor.text3)
+                        .foregroundStyle(session.isPremium ? Color(light: 0x92400E, dark: 0xFFD27A) : BFColor.text3)
                 }
                 Spacer()
                 Circle()
-                    .fill(session.isPremium ? Color(hex: 0xFEF3C7) : BFColor.blueSoft)
+                    .fill(session.isPremium ? BFColor.amberSoft : BFColor.blueSoft)
                     .frame(width: 32, height: 32)
                     .overlay {
                         Image(systemName: session.isPremium ? "arrow.up.right" : "chevron.right")

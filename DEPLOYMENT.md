@@ -37,10 +37,15 @@ Wait until `dig +short billfixer.dakshyaminfotech.store` returns the VPS IP — 
 
 ```bash
 ssh root@YOUR_VPS_IP
-git clone https://github.com/<you>/<repo>.git /opt/billfixer
+git clone --filter=blob:none --sparse https://github.com/Pgr0708/BillFixer.git /opt/billfixer
 cd /opt/billfixer
+git sparse-checkout set backend
 sudo bash backend/deploy/setup-server.sh you@example.com
 ```
+
+**Backend only:** `--sparse` + `git sparse-checkout set backend` checks out just `backend/` (Node API + Python
+data pipeline). The iOS/Swift code and design files are never downloaded to the server, and every later
+`git pull` (including the one inside `deploy.sh`) keeps it that way.
 
 Clone into `/opt/billfixer` (not `/root`): the script hands the repo to a dedicated `billfixer` user, which can't read inside `/root`.
 If the repo is private, use a GitHub deploy key or an HTTPS token so `git pull` works for updates.
