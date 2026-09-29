@@ -93,20 +93,20 @@ struct FindingDetailView: View {
                 // Circular severity icon
                 ZStack {
                     Circle()
-                        .fill(finding.severity.badgeColor.opacity(0.15))
+                        .fill(finding.severity.color.opacity(0.15))
                         .frame(width: 52, height: 52)
                     Circle()
-                        .fill(finding.severity.badgeColor.opacity(0.25))
+                        .fill(finding.severity.color.opacity(0.25))
                         .frame(width: 40, height: 40)
                     Image(systemName: finding.severity.symbol)
                         .font(.system(size: 18, weight: .bold))
-                        .foregroundStyle(finding.severity.badgeColor)
+                        .foregroundStyle(finding.severity.color)
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(finding.severity.label)
                         .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(finding.severity.badgeColor)
+                        .foregroundStyle(finding.severity.color)
                         .tracking(0.5)
                     Text(finding.confidence.title + " confidence")
                         .font(.system(size: 12))
@@ -138,16 +138,16 @@ struct FindingDetailView: View {
         .padding(18)
         .background(Color.white)
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .shadow(color: finding.severity.badgeColor.opacity(0.12), radius: 16, y: 6)
+        .shadow(color: finding.severity.color.opacity(0.12), radius: 16, y: 6)
         .overlay(
             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .strokeBorder(finding.severity.badgeColor.opacity(0.2), lineWidth: 1.5)
+                .strokeBorder(finding.severity.color.opacity(0.2), lineWidth: 1.5)
         )
     }
 
     // MARK: - Amount card
 
-    private func amountCard(_ amount: MoneyAmount) -> some View {
+    private func amountCard(_ amount: Money) -> some View {
         HStack(spacing: 16) {
             // Circular icon
             Circle()
@@ -408,7 +408,7 @@ struct FindingDetailView: View {
     private var circleDecorations: some View {
         ZStack {
             Circle()
-                .fill(finding.severity.badgeColor.opacity(0.06))
+                .fill(finding.severity.color.opacity(0.06))
                 .frame(width: 280)
                 .offset(x: 150, y: -140)
                 .blur(radius: 2)
@@ -446,21 +446,13 @@ struct FindingDetailView: View {
 
 // MARK: - Severity helpers
 
-private extension FindingSeverity {
+extension Severity {
     var bgLight: Color {
         switch self {
         case .strong:   return Color(hex: 0xFFF5F5)
         case .likely:   return Color(hex: 0xFFFBEB)
         case .possible: return Color(hex: 0xEFF6FF)
         default:        return Color(hex: 0xF7F9FD)
-        }
-    }
-    var badgeColor: Color {
-        switch self {
-        case .strong:   return BFColor.red
-        case .likely:   return BFColor.amber
-        case .possible: return BFColor.blue
-        default:        return BFColor.text3
         }
     }
 }
