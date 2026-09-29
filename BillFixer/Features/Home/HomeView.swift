@@ -1,159 +1,443 @@
 import SwiftUI
 
-/// Board screens 06 (light) / 23 (dark).
+// MARK: - Home Dashboard — matches Claude design (screen 06)
 struct HomeView: View {
     @Environment(AppSession.self) private var session
     @Environment(AppRouter.self) private var router
     @Environment(CasesStore.self) private var store
     @State private var showReminders = false
+    @State private var appeared = false
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                header.staggeredAppear(0)
-                if !session.isPremium {
-                    PlanBanner(text: "Free Plan — 1 finding preview per bill") { router.requirePremium(.general) }
-                        .staggeredAppear(1)
+        ZStack {
+            // ── Soft gradient background with circular decorations ───────
+            homeBackground
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+
+                    // 1. Header: avatar + greeting + bell
+                    headerRow
+                        .padding(.top, 8)
+                        .opacity(appeared ? 1 : 0)
+                        .offset(y: appeared ? 0 : -12)
+
+                    // 2. Free plan banner (if not premium)
+                    if !session.isPremium {
+                        freePlanBanner
+                            .opacity(appeared ? 1 : 0)
+                            .offset(y: appeared ? 0 : 16)
+                            .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.05), value: appeared)
+                    }
+
+                    // 3. "Scan a Medical Bill" hero card
+                    scanCard
+                        .opacity(appeared ? 1 : 0)
+                        .offset(y: appeared ? 0 : 20)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.10), value: appeared)
+
+                    // 4. Quick actions grid
+                    quickActionsRow
+                        .opacity(appeared ? 1 : 0)
+                        .offset(y: appeared ? 0 : 20)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.15), value: appeared)
+
+                    // 5. Savings card (if any)
+                    if store.totalSavings.value > 0 || store.potentialSavings.value > 0 {
+                        savingsCard
+                            .opacity(appeared ? 1 : 0)
+                            .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.18), value: appeared)
+                    }
+
+                    // 6. Cases section
+                    casesSection
+                        .opacity(appeared ? 1 : 0)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.22), value: appeared)
+
+                    // 7. Learn card
+                    learnCard
+                        .opacity(appeared ? 1 : 0)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.27), value: appeared)
+
+                    // Bottom padding above tab bar
+                    Spacer().frame(height: 100)
                 }
-                scanCard.staggeredAppear(2)
-                quickActions.staggeredAppear(3)
-                if store.totalSavings.value > 0 || store.potentialSavings.value > 0 { savingsCard.staggeredAppear(4) }
-                casesSection.staggeredAppear(5)
-                learnCard.staggeredAppear(6)
+                .padding(.horizontal, 20)
             }
-            .padding(.horizontal, BFSpacing.screen)
-            .padding(.top, 8)
-            .padding(.bottom, 24)
+            .scrollIndicators(.hidden)
+            .refreshable { await store.load(force: true); await session.refresh() }
         }
-        .scrollIndicators(.hidden)
-        .refreshable { await store.load(force: true); await session.refresh() }
-        .scenicBackground(.home)
         .toolbar(.hidden, for: .navigationBar)
         .sheet(isPresented: $showReminders) { RemindersSheet(cases: store.active) }
-    }
-
-    private var header: some View {
-        HStack(spacing: 12) {
-            Button { router.tab = .settings } label: { Avatar(initial: session.user?.initial ?? "") }
-                .buttonStyle(.pressable)
-                .accessibilityLabel("Account")
-            VStack(alignment: .leading, spacing: 2) {
-                Text(DateHelpers.greeting()).font(.system(size: 14, weight: .medium)).foregroundStyle(BFColor.text3)
-                Text(session.user?.firstName ?? "there").font(BFFont.title2(22)).foregroundStyle(BFColor.text1).lineLimit(1)
+        .onAppear {
+            withAnimation(.spring(response: 0.55, dampingFraction: 0.78)) {
+                appeared = true
             }
-            Spacer()
-            IconButton(symbol: store.active.contains { $0.nextDeadline != nil } ? "bell.badge.fill" : "bell.fill",
-                       tint: BFColor.navy, label: "Reminders") { showReminders = true }
         }
     }
+
+    // MARK: - Background
+
+    private var homeBackground: some View {
+        ZStack {
+            // Base gradient
+            LinearGradient(
+                colors: [Color(hex: 0xEAF4F4), Color(hex: 0xF0F8FF), Color(hex: 0xF7F9FD)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+
+            // Top-right teal circle (large, soft)
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [Color(hex: 0x00BFA5).opacity(0.18), Color.clear],
+                        center: .center, startRadius: 0, endRadius: 180
+                    )
+                )
+                .frame(width: 360, height: 360)
+                .offset(x: 160, y: -120)
+
+            // Bottom-left circle
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [Color(hex: 0x2E7DF6).opacity(0.08), Color.clear],
+                        center: .center, startRadius: 0, endRadius: 160
+                    )
+                )
+                .frame(width: 320, height: 320)
+                .offset(x: -130, y: 500)
+
+            // Mid decorative circle
+            Circle()
+                .fill(Color(hex: 0x00BFA5).opacity(0.06))
+                .frame(width: 200, height: 200)
+                .offset(x: -80, y: 280)
+        }
+    }
+
+    // MARK: - Header Row
+
+    private var headerRow: some View {
+        HStack(spacing: 12) {
+            // Avatar circle
+            Button { router.tab = .settings } label: {
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color(hex: 0x0B2B5C), Color(hex: 0x2E7DF6)],
+                                startPoint: .topLeading, endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 44, height: 44)
+                    Text(session.user?.initial ?? "U")
+                        .font(.system(size: 17, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white)
+                }
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Account")
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(DateHelpers.greeting())
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(BFColor.text3)
+                Text(session.user?.firstName ?? "there")
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .foregroundStyle(BFColor.text1)
+                    .lineLimit(1)
+            }
+
+            Spacer()
+
+            // Bell / reminders
+            Button { showReminders = true } label: {
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 40, height: 40)
+                    .shadow(color: .black.opacity(0.08), radius: 8, y: 2)
+                    .overlay {
+                        Image(systemName: store.active.contains { $0.nextDeadline != nil }
+                              ? "bell.badge.fill" : "bell.fill")
+                            .font(.system(size: 16, weight: .semibold))
+                            .symbolRenderingMode(.palette)
+                            .foregroundStyle(
+                                store.active.contains { $0.nextDeadline != nil } ? BFColor.red : BFColor.navy,
+                                BFColor.navy
+                            )
+                    }
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Reminders")
+        }
+    }
+
+    // MARK: - Free Plan Banner
+
+    private var freePlanBanner: some View {
+        Button { router.requirePremium(.general) } label: {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("FREE PLAN")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(Color(hex: 0xB45309))
+                        .tracking(0.8)
+                    Text("1 of 3 findings previewed")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(Color(hex: 0x78350F))
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(Color(hex: 0xB45309))
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .background(Color(hex: 0xFEF3C7))
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .strokeBorder(Color(hex: 0xFCD34D).opacity(0.6), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Scan Hero Card
 
     private var scanCard: some View {
         Button { router.startCapture() } label: {
             HStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Scan a Medical Bill").font(BFFont.title2(21)).foregroundStyle(.white)
-                    Text("Photo, PDF or Camera").font(.system(size: 14, weight: .medium)).foregroundStyle(.white.opacity(0.8))
-                    HStack(spacing: 6) {
-                        Image(systemName: "lock.shield.fill")
-                        Text("Read on your iPhone. Private by design.")
-                    }
-                    .font(.system(size: 11, weight: .semibold)).foregroundStyle(BFColor.teal2).padding(.top, 6)
+                    Text("NEW CASE")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(.white.opacity(0.7))
+                        .tracking(1.2)
+                    Text("Scan a Medical Bill")
+                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white)
+                    Text("Photo, PDF or Camera")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.82))
                 }
                 Spacer()
-                Image(systemName: "plus")
-                    .font(.system(size: 26, weight: .bold)).foregroundStyle(BFColor.navy)
-                    .frame(width: 60, height: 60)
-                    .background(.white, in: Circle())
-                    .bfShadow(.float)
+
+                // Circle + button
+                ZStack {
+                    Circle()
+                        .fill(.white)
+                        .frame(width: 56, height: 56)
+                    Image(systemName: "plus")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundStyle(Color(hex: 0x2E7DF6))
+                }
+                .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
             }
-            .padding(20)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 22)
             .background {
                 ZStack(alignment: .topTrailing) {
-                    RoundedRectangle(cornerRadius: 24, style: .continuous).fill(BFGradient.navy)
-                    Circle().fill(BFColor.teal.opacity(0.25)).frame(width: 160).offset(x: 50, y: -60)
-                    Circle().fill(Color(hex: 0x5B9BFF).opacity(0.25)).frame(width: 110).offset(x: -150, y: 60)
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color(hex: 0x2E7DF6), Color(hex: 0x0B2B5C)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                    // Decorative circles inside card
+                    Circle()
+                        .fill(.white.opacity(0.08))
+                        .frame(width: 140)
+                        .offset(x: 40, y: -60)
+                    Circle()
+                        .fill(Color(hex: 0x00BFA5).opacity(0.15))
+                        .frame(width: 90)
+                        .offset(x: -120, y: 50)
                 }
-                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
             }
-            .bfShadow(.navyButton)
+            .shadow(color: Color(hex: 0x0B2B5C).opacity(0.3), radius: 16, y: 8)
         }
         .buttonStyle(.pressable)
         .accessibilityLabel("Scan a medical bill. Photo, PDF or camera.")
     }
 
-    private var quickActions: some View {
+    // MARK: - Quick Actions (4 icon tiles)
+
+    private var quickActionsRow: some View {
         HStack(spacing: 12) {
-            quick("Scan Bill", "doc.viewfinder", BFColor.blue, BFColor.blueSoft) { router.startCapture(.camera) }
-            quick("Add EOB", "doc.text.fill", BFColor.teal, BFColor.tealSoft) { router.startCapture(.photos) }
-            quick("Import PDF", "arrow.down.doc.fill", BFColor.violet, BFColor.violetSoft) { router.startCapture(.pdf) }
+            quickTile("Scan Bill",   "doc.viewfinder",       BFColor.blue,  BFColor.blueSoft)  { router.startCapture(.camera) }
+            quickTile("Add EOB",     "doc.text.fill",        BFColor.teal,  BFColor.tealSoft)  { router.startCapture(.photos) }
+            quickTile("Import PDF",  "arrow.down.doc.fill",  BFColor.violet,BFColor.violetSoft){ router.startCapture(.pdf) }
+            quickTile("Help",        "questionmark",         BFColor.text3, BFColor.line)       { router.tab = .learn }
         }
     }
 
-    private func quick(_ title: String, _ symbol: String, _ tint: Color, _ fill: Color, action: @escaping () -> Void) -> some View {
+    private func quickTile(_ title: String, _ symbol: String, _ tint: Color, _ fill: Color, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             VStack(spacing: 8) {
-                IconTile(symbol: symbol, tint: tint, fill: fill, size: 46)
-                Text(title).font(.system(size: 13, weight: .semibold)).foregroundStyle(BFColor.text1)
+                // Circular icon container
+                Circle()
+                    .fill(fill)
+                    .frame(width: 48, height: 48)
+                    .overlay {
+                        Image(systemName: symbol)
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(tint)
+                    }
+                Text(title)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(BFColor.text2)
+                    .lineLimit(1)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
-            .background(BFColor.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(BFColor.line.opacity(0.7)))
-            .bfShadow(.subtle)
+            .background(Color.white)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .shadow(color: .black.opacity(0.05), radius: 6, y: 2)
         }
-        .buttonStyle(.pressable)
+        .buttonStyle(.plain)
     }
+
+    // MARK: - Savings Card
 
     private var savingsCard: some View {
         HStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Saved so far").overlineStyle()
-                CountUpMoney(money: store.totalSavings, font: BFFont.money(26), color: BFColor.green)
+                Text("Saved so far")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(BFColor.text3)
+                    .tracking(0.5)
+                CountUpMoney(money: store.totalSavings, font: BFFont.money(24), color: BFColor.green)
             }
             Spacer()
-            Rectangle().fill(BFColor.line).frame(width: 1, height: 40)
+            Rectangle().fill(BFColor.line).frame(width: 1, height: 36)
             Spacer()
             VStack(alignment: .leading, spacing: 4) {
-                Text("Possible savings").overlineStyle()
-                CountUpMoney(money: store.potentialSavings, font: BFFont.money(26), color: BFColor.amber)
+                Text("Possible savings")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(BFColor.text3)
+                    .tracking(0.5)
+                CountUpMoney(money: store.potentialSavings, font: BFFont.money(24), color: BFColor.amber)
             }
             Spacer()
         }
-        .cardStyle(padding: 18, radius: 20)
+        .padding(18)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .shadow(color: .black.opacity(0.05), radius: 8, y: 3)
     }
+
+    // MARK: - Cases Section
 
     @ViewBuilder
     private var casesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            SectionHeader(title: "Your Cases", actionTitle: store.cases.isEmpty ? nil : "See All") { router.tab = .cases }
+            HStack {
+                Text("Your Cases")
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .foregroundStyle(BFColor.text1)
+                Spacer()
+                if !store.cases.isEmpty {
+                    Button("See All") { router.tab = .cases }
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(BFColor.blue)
+                }
+            }
+
             if store.cases.isEmpty {
                 switch store.state {
-                case .loading, .idle: SkeletonList(rows: 2)
-                case let .failed(error): ErrorStateView(error: error) { Task { await store.load(force: true) } }.cardStyle()
+                case .loading, .idle:
+                    SkeletonList(rows: 2)
+                case let .failed(error):
+                    ErrorStateView(error: error) { Task { await store.load(force: true) } }
+                        .padding(16)
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 case .loaded:
-                    ActionRow(symbol: "folder.badge.plus", title: "No cases yet", subtitle: "Scan your first bill — we’ll check it for errors.")
-                        .onTapGesture { router.startCapture() }
+                    emptyState
                 }
             } else {
                 ForEach(Array(store.cases.prefix(3).enumerated()), id: \.element.id) { i, item in
                     Button { router.push(.caseDetail(item.id)) } label: { CaseCard(item: item) }
                         .buttonStyle(.pressable)
-                        .staggeredAppear(i + 5)
                 }
             }
         }
     }
 
+    private var emptyState: some View {
+        Button { router.startCapture() } label: {
+            HStack(spacing: 14) {
+                Circle()
+                    .fill(BFColor.blueSoft)
+                    .frame(width: 46, height: 46)
+                    .overlay {
+                        Image(systemName: "folder.badge.plus")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(BFColor.blue)
+                    }
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("No cases yet")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(BFColor.text1)
+                    Text("Scan your first bill — we'll check it for errors.")
+                        .font(.system(size: 13))
+                        .foregroundStyle(BFColor.text3)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(BFColor.text4)
+            }
+            .padding(16)
+            .background(Color.white)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .shadow(color: .black.opacity(0.04), radius: 6, y: 2)
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Learn Card
+
     private var learnCard: some View {
         Button { router.push(.rights(caseId: nil), on: .learn) } label: {
-            ActionRow(symbol: "building.columns.fill", title: "Know your rights",
-                      subtitle: "No Surprises Act, financial assistance and more", tint: BFColor.violet, fill: BFColor.violetSoft)
+            HStack(spacing: 14) {
+                Circle()
+                    .fill(BFColor.violetSoft)
+                    .frame(width: 46, height: 46)
+                    .overlay {
+                        Image(systemName: "building.columns.fill")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(BFColor.violet)
+                    }
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Know your rights")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(BFColor.text1)
+                    Text("No Surprises Act, financial assistance and more")
+                        .font(.system(size: 13))
+                        .foregroundStyle(BFColor.text3)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(BFColor.text4)
+            }
+            .padding(16)
+            .background(Color.white)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .shadow(color: .black.opacity(0.04), radius: 6, y: 2)
         }
-        .buttonStyle(.pressable)
+        .buttonStyle(.plain)
     }
 }
 
-/// Bell → upcoming deadlines across open cases.
+// MARK: - Reminders Sheet
 private struct RemindersSheet: View {
     let cases: [CaseSummary]
     @Environment(\.dismiss) private var dismiss
@@ -167,8 +451,16 @@ private struct RemindersSheet: View {
         NavigationStack {
             Group {
                 if upcoming.isEmpty {
-                    EmptyStateView(title: "All caught up", message: "Deadlines you add to a case — like the 120-day dispute window — show up here.") {
-                        IconTile(symbol: "bell.slash.fill", tint: BFColor.blue, fill: BFColor.blueSoft, size: 80, radius: 26)
+                    EmptyStateView(title: "All caught up",
+                                   message: "Deadlines you add to a case — like the 120-day dispute window — show up here.") {
+                        Circle()
+                            .fill(BFColor.blueSoft)
+                            .frame(width: 80, height: 80)
+                            .overlay {
+                                Image(systemName: "bell.slash.fill")
+                                    .font(.system(size: 32, weight: .semibold))
+                                    .foregroundStyle(BFColor.blue)
+                            }
                     }
                     .frame(maxHeight: .infinity)
                 } else {
@@ -178,13 +470,25 @@ private struct RemindersSheet: View {
                             router.push(.caseDetail(item.0.id))
                         } label: {
                             HStack(spacing: 12) {
-                                IconTile(symbol: "calendar.badge.clock", tint: BFColor.red, fill: BFColor.redSoft, size: 40)
+                                Circle()
+                                    .fill(BFColor.redSoft)
+                                    .frame(width: 40, height: 40)
+                                    .overlay {
+                                        Image(systemName: "calendar.badge.clock")
+                                            .font(.system(size: 16, weight: .semibold))
+                                            .foregroundStyle(BFColor.red)
+                                    }
                                 VStack(alignment: .leading, spacing: 3) {
-                                    Text(item.1.label).font(.system(size: 15, weight: .semibold)).foregroundStyle(BFColor.text1)
-                                    Text(item.0.displayName).font(.system(size: 13)).foregroundStyle(BFColor.text3)
+                                    Text(item.1.label)
+                                        .font(.system(size: 15, weight: .semibold))
+                                        .foregroundStyle(BFColor.text1)
+                                    Text(item.0.displayName)
+                                        .font(.system(size: 13))
+                                        .foregroundStyle(BFColor.text3)
                                 }
                                 Spacer()
-                                Text(DateHelpers.dueLabel(item.1.dueDate)).font(.system(size: 12, weight: .bold))
+                                Text(DateHelpers.dueLabel(item.1.dueDate))
+                                    .font(.system(size: 12, weight: .bold))
                                     .foregroundStyle((DateHelpers.daysUntil(item.1.dueDate) ?? 99) <= 3 ? BFColor.red : BFColor.text2)
                             }
                         }

@@ -4,69 +4,118 @@ enum AppTab: Int, CaseIterable, Identifiable {
     case home, cases, scan, learn, settings
     var id: Int { rawValue }
     var title: String { ["Home", "Cases", "Scan", "Learn", "Settings"][rawValue] }
-    var symbol: String { ["house.fill", "folder.fill", "doc.viewfinder", "book.fill", "gearshape.fill"][rawValue] }
+    var symbol: String { ["house.fill", "folder", "plus", "sparkles", "gearshape"][rawValue] }
 }
 
-/// Custom tab bar (Figma `TabBar`) with a raised Scan button in the middle.
+// MARK: - BFTabBar — matches the Claude design image exactly
+// Layout: floating white rounded-pill card
+// Active tab: teal filled circle background
+// Center Scan: elevated large blue filled circle with plus, offset up
+// Inactive: gray icon + gray label
+
 struct BFTabBar: View {
     @Binding var selection: AppTab
     let onScan: () -> Void
-    @Namespace private var indicator
+    @Namespace private var ns
+
+    // Only non-scan tabs (2 left, 2 right)
+    private let leftTabs: [AppTab]  = [.home, .cases]
+    private let rightTabs: [AppTab] = [.learn, .settings]
 
     var body: some View {
-        HStack(alignment: .bottom, spacing: 0) {
-            ForEach(AppTab.allCases) { tab in
-                if tab == .scan {
-                    Button { Haptics.tap(); onScan() } label: {
-                        VStack(spacing: 4) {
-                            Image(systemName: "plus")
-                                .font(.system(size: 24, weight: .bold))
-                                .foregroundStyle(.white)
-                                .frame(width: 58, height: 58)
-                                .background(LinearGradient(colors: [Color(hex: 0x2E7DF6), BFColor.navy], startPoint: .topLeading, endPoint: .bottomTrailing), in: Circle())
-                                .overlay(Circle().strokeBorder(.white.opacity(0.9), lineWidth: 3))
-                                .bfShadow(.navyButton)
-                            Text(tab.title).font(.system(size: 10, weight: .semibold)).foregroundStyle(BFColor.text3)
-                        }
-                        .offset(y: -14)
-                    }
-                    .buttonStyle(.pressableQuiet)
-                    .frame(maxWidth: .infinity)
-                    .accessibilityLabel("Scan a medical bill")
-                } else {
-                    Button {
-                        guard selection != tab else { return }
-                        Haptics.selection()
-                        withAnimation(BFMotion.snappy) { selection = tab }
-                    } label: {
-                        VStack(spacing: 4) {
-                            ZStack {
-                                if selection == tab {
-                                    Capsule().fill(BFColor.blueSoft).frame(width: 52, height: 30).matchedGeometryEffect(id: "pill", in: indicator)
-                                }
-                                Image(systemName: tab.symbol).font(.system(size: 18, weight: .semibold))
-                                    .foregroundStyle(selection == tab ? BFColor.blue : BFColor.text3)
-                                    .symbolEffect(.bounce, value: selection == tab)
-                            }
-                            .frame(height: 30)
-                            Text(tab.title).font(.system(size: 10, weight: .semibold)).foregroundStyle(selection == tab ? BFColor.blue : BFColor.text3)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(tab.title)
-                    .accessibilityAddTraits(selection == tab ? [.isSelected, .isButton] : .isButton)
+        ZStack(alignment: .bottom) {
+            // ── Floating pill card ───────────────────────────────────────
+            HStack(spacing: 0) {
+                // Left side: Home, Cases
+                ForEach(leftTabs) { tab in
+                    tabItem(tab)
+                }
+
+                // Center gap for the elevated scan button
+                Spacer().frame(width: 80)
+
+                // Right side: Learn, Settings
+                ForEach(rightTabs) { tab in
+                    tabItem(tab)
                 }
             }
+            .padding(.horizontal, 8)
+            .padding(.top, 10)
+            .padding(.bottom, 14)
+            .background(
+                RoundedRectangle(cornerRadius: 32, style: .continuous)
+                    .fill(.white)
+                    .shadow(color: .black.opacity(0.12), radius: 24, y: 8)
+                    .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+            )
+            .padding(.horizontal, 20)
+
+            // ── Elevated center Scan button (overlaps the pill) ──────────
+            Button {
+                Haptics.tap()
+                onScan()
+            } label: {
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color(hex: 0x2E7DF6), Color(hex: 0x0B2B5C)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 60, height: 60)
+                        .shadow(color: Color(hex: 0x2E7DF6).opacity(0.45), radius: 16, y: 6)
+
+                    Image(systemName: "plus")
+                        .font(.system(size: 26, weight: .bold))
+                        .foregroundStyle(.white)
+                }
+            }
+            .buttonStyle(.pressableQuiet)
+            .offset(y: -20)
+            .accessibilityLabel("Scan a medical bill")
         }
-        .padding(.horizontal, 8)
-        .padding(.top, 8)
-        .padding(.bottom, 2)
-        .background {
-            Rectangle().fill(.regularMaterial)
-                .overlay(alignment: .top) { Rectangle().fill(BFColor.line).frame(height: 0.5) }
-                .ignoresSafeArea(edges: .bottom)
+        .padding(.bottom, 8)
+    }
+
+    // MARK: - Individual tab item
+
+    private func tabItem(_ tab: AppTab) -> some View {
+        let isActive = selection == tab
+        return Button {
+            guard selection != tab else { return }
+            Haptics.selection()
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.72)) {
+                selection = tab
+            }
+        } label: {
+            VStack(spacing: 4) {
+                ZStack {
+                    // Active background circle
+                    if isActive {
+                        Circle()
+                            .fill(BFColor.teal)
+                            .frame(width: 44, height: 44)
+                            .matchedGeometryEffect(id: "tabCircle", in: ns)
+                    }
+
+                    Image(systemName: tab.symbol)
+                        .font(.system(size: isActive ? 18 : 19, weight: .semibold))
+                        .foregroundStyle(isActive ? .white : BFColor.text3)
+                        .symbolEffect(.bounce, value: isActive)
+                }
+                .frame(width: 44, height: 44)
+
+                Text(tab.title)
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(isActive ? BFColor.teal : BFColor.text3)
+            }
+            .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
+        .accessibilityLabel(tab.title)
+        .accessibilityAddTraits(isActive ? [.isSelected, .isButton] : .isButton)
     }
 }

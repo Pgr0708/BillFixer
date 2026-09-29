@@ -9,17 +9,20 @@ struct MainTabView: View {
     var body: some View {
         Group {
             switch router.tab {
-            case .home: stack(.home) { HomeView() }
-            case .cases: stack(.cases) { CasesListView() }
-            case .learn: stack(.learn) { LearnView() }
+            case .home:     stack(.home)     { HomeView() }
+            case .cases:    stack(.cases)    { CasesListView() }
+            case .learn:    stack(.learn)    { LearnView() }
             case .settings: stack(.settings) { SettingsView() }
-            case .scan: EmptyView()
+            case .scan:     EmptyView()
             }
         }
         .transition(.opacity)
-        // Inset (not overlay) so every scroll view ends above the bar, whatever its real height.
+        // Extra bottom inset — floating pill tab bar is ~90pt tall
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            BFTabBar(selection: Binding(get: { router.tab }, set: { router.tab = $0 }), onScan: { router.startCapture() })
+            BFTabBar(
+                selection: Binding(get: { router.tab }, set: { router.tab = $0 }),
+                onScan: { router.startCapture() }
+            )
         }
         .overlay(alignment: .top) {
             if !network.isOnline { OfflineBanner().padding(.top, 4) }
@@ -45,7 +48,8 @@ struct MainTabView: View {
             .environment(session)
         }
         .fullScreenCover(isPresented: $router.showAllSet) {
-            AllSetView { router.showAllSet = false; router.startCapture() } onClose: { router.showAllSet = false }
+            AllSetView { router.showAllSet = false; router.startCapture() }
+                onClose: { router.showAllSet = false }
         }
         .task { await store.load() }
         .onChange(of: router.tab) { _, _ in Haptics.selection() }
@@ -58,26 +62,26 @@ struct MainTabView: View {
     }
 }
 
-/// Maps a `Route` to its screen.
+// MARK: - Route → View mapper
 struct RouteView: View {
     let route: Route
 
     var body: some View {
         switch route {
-        case let .caseDetail(id): CaseDetailView(caseId: id)
-        case let .results(id): ResultsOverviewView(caseId: id)
-        case let .findings(id): FindingsListView(caseId: id)
-        case let .finding(caseId, finding): FindingDetailView(caseId: caseId, finding: finding)
-        case let .letter(caseId, letterId): LetterView(caseId: caseId, source: .existing(letterId))
-        case let .newLetter(caseId, findingId, type): LetterView(caseId: caseId, source: .generate(findingId: findingId, type: type))
-        case let .script(caseId, scriptId): PhoneScriptView(source: .existing(caseId: caseId, scriptId: scriptId))
-        case let .newScript(caseId, findingId, target, issue): PhoneScriptView(source: .generate(caseId: caseId, findingId: findingId, callTarget: target, issueType: issue))
-        case let .libraryScript(script): PhoneScriptView(source: .library(script))
-        case let .rights(caseId): RightsListView(caseId: caseId)
-        case let .right(info, caseId): RightDetailView(right: info, caseId: caseId)
-        case let .assistance(caseId): FinancialAssistanceView(caseId: caseId)
-        case let .timeline(id): CaseTimelineView(caseId: id)
-        case .account: AccountView()
+        case let .caseDetail(id):                CaseDetailView(caseId: id)
+        case let .results(id):                   ResultsOverviewView(caseId: id)
+        case let .findings(id):                  FindingsListView(caseId: id)
+        case let .finding(caseId, finding):      FindingDetailView(caseId: caseId, finding: finding)
+        case let .letter(caseId, letterId):      LetterView(caseId: caseId, source: .existing(letterId))
+        case let .newLetter(caseId, fid, type):  LetterView(caseId: caseId, source: .generate(findingId: fid, type: type))
+        case let .script(caseId, scriptId):      PhoneScriptView(source: .existing(caseId: caseId, scriptId: scriptId))
+        case let .newScript(caseId, fid, t, i):  PhoneScriptView(source: .generate(caseId: caseId, findingId: fid, callTarget: t, issueType: i))
+        case let .libraryScript(script):         PhoneScriptView(source: .library(script))
+        case let .rights(caseId):                RightsListView(caseId: caseId)
+        case let .right(info, caseId):           RightDetailView(right: info, caseId: caseId)
+        case let .assistance(caseId):            FinancialAssistanceView(caseId: caseId)
+        case let .timeline(id):                  CaseTimelineView(caseId: id)
+        case .account:                           AccountView()
         }
     }
 }
