@@ -6,6 +6,7 @@
 set -euo pipefail
 REPO_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$REPO_DIR"
+PORT="$(grep -E '^PORT=' backend/.env 2>/dev/null | cut -d= -f2)"
 
 echo "▶ Pulling latest code"
 git pull --ff-only
@@ -27,7 +28,7 @@ pm2 save
 
 echo "▶ Health check"
 for i in {1..15}; do
-  if curl -fsS http://127.0.0.1:3000/health/ready >/dev/null; then echo "✓ Deployed and healthy"; exit 0; fi
+  if curl -fsS "http://127.0.0.1:${PORT:-3000}/health/ready" >/dev/null; then echo "✓ Deployed and healthy"; exit 0; fi
   sleep 2
 done
 echo "✗ Health check failed — inspect: pm2 logs billfixer-api --lines 100"

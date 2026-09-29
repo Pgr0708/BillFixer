@@ -27,9 +27,14 @@ async function main() {
     connectTimeout: 15_000,
   });
   try {
+    // MariaDB (common on shared servers) has no utf8mb4_0900_ai_ci before 11.4 — use its closest equivalent.
+    const [[{ version }]] = await conn.query('SELECT VERSION() AS version');
+    const mariadb = /mariadb/i.test(version);
+    if (mariadb) console.log(`→ MariaDB ${version} detected — using utf8mb4_unicode_ci`);
     const files = ['schema.sql', ...(withSeed ? ['seed.sql'] : [])];
     for (const file of files) {
-      const sql = await readFile(path.join(dir, file), 'utf8');
+      let sql = await readFile(path.join(dir, file), 'utf8');
+      if (mariadb) sql = sql.replaceAll('utf8mb4_0900_ai_ci', 'utf8mb4_unicode_ci');
       const checksum = createHash('sha256').update(sql).digest('hex');
       process.stdout.write(`→ applying ${file} … `);
       await conn.query(sql);

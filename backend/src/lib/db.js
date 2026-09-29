@@ -23,8 +23,16 @@ const baseOptions = {
   multipleStatements: false,
 };
 
-const primary = mysql.createPool({ ...baseOptions, host: config.db.host });
-const replica = config.db.readHost ? mysql.createPool({ ...baseOptions, host: config.db.readHost }) : primary;
+// Session settings per connection, so BillFixer never needs to change server-wide MySQL config
+// (important when the database server is shared with other sites).
+const SESSION_SQL = "SET time_zone = '+00:00', sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'";
+function withSession(pool) {
+  pool.pool.on('connection', (conn) => conn.query(SESSION_SQL, (err) => { if (err) logger.error({ err }, 'session setup failed'); }));
+  return pool;
+}
+
+const primary = withSession(mysql.createPool({ ...baseOptions, host: config.db.host }));
+const replica = config.db.readHost ? withSession(mysql.createPool({ ...baseOptions, host: config.db.readHost })) : primary;
 
 const TRANSIENT = new Set([
   'ER_LOCK_DEADLOCK',

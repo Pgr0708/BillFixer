@@ -17,7 +17,7 @@ def connect() -> pymysql.connections.Connection:
         connect_timeout=15,
         read_timeout=300,
         write_timeout=300,
-        init_command="SET time_zone = '+00:00'",
+        init_command="SET time_zone = '+00:00', sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'",
         cursorclass=pymysql.cursors.DictCursor,
     )
 

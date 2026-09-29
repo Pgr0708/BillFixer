@@ -97,7 +97,9 @@ def run(conn, force: bool = False):
     seen = 0
     try:
         with open(dl.path, "r", encoding="utf-8-sig", errors="replace", newline="") as fh, conn.cursor() as cur:
-            cur.execute("CREATE TEMPORARY TABLE IF NOT EXISTS _seen_cms (id VARCHAR(20) PRIMARY KEY)")
+            # Copy the column definition (type + collation) from providers so the join below always matches.
+            cur.execute("CREATE TEMPORARY TABLE IF NOT EXISTS _seen_cms (PRIMARY KEY (id)) "
+                        "SELECT cms_facility_id AS id FROM providers WHERE 1 = 0")
             cur.execute("TRUNCATE _seen_cms")
             for batch in batched(parse_csv(fh), 500):
                 cur.executemany(
