@@ -5,7 +5,11 @@
  *                      so you can run this same file on more servers behind nginx's upstream.
  *  Zero downtime:      `pm2 reload` restarts workers one at a time; wait_ready waits for process.send('ready').
  */
-require('dotenv').config({ path: require('path').join(__dirname, '.env') }); // PM2_INSTANCES etc.
+// Read ONLY PM2_INSTANCES from .env. Never copy .env into PM2's saved environment: PM2 would keep a stale
+// snapshot (e.g. an empty OPENAI_API_KEY from first start) that outlives later .env edits.
+const fs = require('fs');
+const envFile = require('path').join(__dirname, '.env');
+const fileEnv = fs.existsSync(envFile) ? require('dotenv').parse(fs.readFileSync(envFile)) : {};
 
 module.exports = {
   apps: [
@@ -14,7 +18,7 @@ module.exports = {
       script: 'src/server.js',
       cwd: __dirname,
       exec_mode: 'cluster',
-      instances: process.env.PM2_INSTANCES || 'max',
+      instances: fileEnv.PM2_INSTANCES || process.env.PM2_INSTANCES || 'max',
       node_args: '--max-old-space-size=512',
       max_memory_restart: '600M',
       wait_ready: true,

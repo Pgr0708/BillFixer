@@ -1,4 +1,9 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'node:url';
+
+// backend/.env is the single source of truth: override=true so stale values inherited from the
+// process manager (PM2 env snapshots) can never shadow what's in the file.
+dotenv.config({ path: fileURLToPath(new URL('../../.env', import.meta.url)), override: true });
 import { z } from 'zod';
 
 const bool = (def) =>
