@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { submitBill, isoDate, password, createLetter, analyzeBody } from '../src/validators/index.js';
+import { submitBill, isoDate, password, register, newEmail, createLetter, analyzeBody } from '../src/validators/index.js';
 
 test('bill: money strings are normalised, unknown fields rejected', () => {
   const ok = submitBill.parse({ providerName: 'Riverside', totalCharges: '$2,250.00', lineItems: [
@@ -25,6 +25,24 @@ test('password policy', () => {
   assert.equal(password.safeParse('short1').success, false);
   assert.equal(password.safeParse('longenoughbutnodigits').success, false);
   assert.equal(password.safeParse('BillFixer2026').success, true);
+  assert.equal(password.safeParse('Password123').success, false);   // common
+  assert.equal(password.safeParse(' BillFixer2026').success, false); // edge space
+  assert.equal(password.safeParse('aaaa1234xyz').success, false);   // repeats
+});
+
+test('new email rules', () => {
+  const ok = (e) => newEmail.safeParse(e).success;
+  assert.equal(newEmail.parse('  Jane.Doe+bills@Example.COM '), 'jane.doe+bills@example.com');
+  for (const bad of ['jane', 'jane@', '@x.com', 'jane@x', 'jane@x.c', 'jane..doe@x.com', '.jane@x.com', 'jane.@x.com',
+    'jane@-x.com', 'jane doe@x.com', 'jane@gmial.com', `${'a'.repeat(65)}@x.com`]) assert.equal(ok(bad), false, bad);
+  assert.equal(ok('j.o-e_1@mail.co.uk'), true);
+});
+
+test('register: password may not contain the email name', () => {
+  const r = register.safeParse({ email: 'johnsmith@x.com', password: 'johnsmith99' });
+  assert.equal(r.success, false);
+  assert.deepEqual(r.error.issues[0].path, ['password']);
+  assert.equal(register.safeParse({ email: 'johnsmith@x.com', password: 'BillFixer2026' }).success, true);
 });
 
 test('letters need a type or a finding', () => {

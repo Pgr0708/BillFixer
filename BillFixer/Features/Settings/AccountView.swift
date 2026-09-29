@@ -164,7 +164,7 @@ struct AccountView: View {
 
     private func saveEmail() async {
         emailErrors = [:]
-        if let e = Validation.email(email) { emailErrors["email"] = e; shake += 1; Haptics.error(); return }
+        if let e = Validation.newEmail(email) { emailErrors["email"] = e; shake += 1; Haptics.error(); return }
         savingEmail = true
         defer { savingEmail = false }
         do {

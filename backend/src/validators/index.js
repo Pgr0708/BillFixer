@@ -21,8 +21,41 @@ const text = (max) => z.string().trim().max(max);
 const optText = (max) => text(max).nullish().transform((v) => (v ? v : null));
 export const uuidSchema = z.string().uuid('Invalid id');
 export const email = z.string().trim().toLowerCase().email('Enter a valid email').max(254);
-export const password = z.string().min(8, 'Use at least 8 characters').max(128)
-  .refine((p) => /[A-Za-z]/.test(p) && /\d/.test(p), 'Use at least one letter and one number');
+
+// Stricter rules for NEW emails (sign up, change email). Sign-in stays lenient so older accounts still work.
+// Keep in sync with Validation.swift on iOS.
+const EMAIL_RE = /^(?!\.)(?!.*\.\.)[a-z0-9._%+-]{1,64}(?<!\.)@(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}$/;
+const EMAIL_TYPOS = {
+  'gmial.com': 'gmail.com', 'gmai.com': 'gmail.com', 'gamil.com': 'gmail.com', 'gmail.co': 'gmail.com', 'gmail.con': 'gmail.com', 'gnail.com': 'gmail.com',
+  'hotmial.com': 'hotmail.com', 'hotmail.co': 'hotmail.com', 'hotmai.com': 'hotmail.com',
+  'yahooo.com': 'yahoo.com', 'yaho.com': 'yahoo.com', 'yahoo.co': 'yahoo.com', 'yahoo.con': 'yahoo.com',
+  'outlok.com': 'outlook.com', 'outlook.co': 'outlook.com', 'iclod.com': 'icloud.com', 'icloud.co': 'icloud.com', 'icoud.com': 'icloud.com',
+};
+export const newEmail = z.string().trim().toLowerCase()
+  .min(1, 'Enter your email').max(254, 'Email is too long')
+  .superRefine((e, ctx) => {
+    if (!EMAIL_RE.test(e)) return ctx.addIssue({ code: 'custom', message: 'Enter a valid email, like name@example.com' });
+    const fix = EMAIL_TYPOS[e.split('@')[1]];
+    if (fix) ctx.addIssue({ code: 'custom', message: `Did you mean @${fix}?` });
+  });
+
+// ponytail: short list of the most common leaked passwords; swap for a HaveIBeenPwned range check if needed.
+const COMMON_PASSWORDS = new Set(['password', 'password1', 'password12', 'password123', 'passw0rd', '12345678', '123456789', '1234567890',
+  'qwerty123', 'qwertyuiop', 'abc12345', 'abcd1234', 'iloveyou1', 'welcome1', 'welcome123', 'letmein1', 'admin123', 'monkey123',
+  '11111111', '1q2w3e4r', '1qaz2wsx', 'football1', 'baseball1', 'sunshine1', 'princess1', 'billfixer1', 'billfixer123']);
+export const password = z.string()
+  .min(8, 'Use at least 8 characters').max(128, 'Use at most 128 characters')
+  .refine((p) => /[A-Za-z]/.test(p) && /\d/.test(p), 'Use at least one letter and one number')
+  .refine((p) => p === p.trim(), 'Remove spaces at the start or end')
+  .refine((p) => !/(.)\1{3,}/.test(p), 'Avoid repeating the same character')
+  .refine((p) => !COMMON_PASSWORDS.has(p.toLowerCase()), 'This password is too common. Pick something harder to guess');
+/** Password must not contain the email's name part (e.g. "john" in john@x.com). */
+const passwordNotEmail = (emailKey, pwKey) => (v, ctx) => {
+  const local = String(v[emailKey] ?? '').split('@')[0].toLowerCase();
+  if (local.length >= 4 && String(v[pwKey] ?? '').toLowerCase().includes(local)) {
+    ctx.addIssue({ code: 'custom', path: [pwKey], message: 'Don’t use your email in your password' });
+  }
+};
 const code = z.string().trim().toUpperCase().max(20).regex(/^[A-Z0-9.-]*$/, 'Invalid code').nullish().transform((v) => v || null);
 const quantity = z.union([z.string(), z.number()]).transform((v) => String(v).trim())
   .refine((s) => /^\d{1,5}(\.\d{1,3})?$/.test(s) && Number(s) > 0, 'Quantity must be greater than 0');
@@ -40,15 +73,17 @@ export const appleSignIn = z.object({
   nonce: z.string().min(16).max(128).optional(),
   displayName: optText(120),
 }).strict();
-export const register = z.object({ email, password, displayName: optText(120) }).strict();
+export const register = z.object({ email: newEmail, password, displayName: optText(120) }).strict()
+  .superRefine(passwordNotEmail('email', 'password'));
 export const login = z.object({ email, password: z.string().min(1).max(128) }).strict();
 export const refreshBody = z.object({ refreshToken: z.string().min(20).max(200) }).strict();
 export const forgotPassword = z.object({ email }).strict();
-export const resetPassword = z.object({ email, code: z.string().regex(/^\d{6}$/, 'Enter the 6-digit code'), newPassword: password }).strict();
+export const resetPassword = z.object({ email, code: z.string().regex(/^\d{6}$/, 'Enter the 6-digit code'), newPassword: password }).strict()
+  .superRefine(passwordNotEmail('email', 'newPassword'));
 
 // ── Account ──
 export const patchMe = z.object({ displayName: text(120).min(1) }).strict();
-export const changeEmail = z.object({ email, currentPassword: z.string().min(1).max(128).optional() }).strict();
+export const changeEmail = z.object({ email: newEmail, currentPassword: z.string().min(1).max(128).optional() }).strict();
 
 // ── Cases ──
 export const CASE_STATUSES = ['draft', 'active', 'awaiting_response', 'resolved', 'closed'];

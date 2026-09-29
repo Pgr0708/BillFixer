@@ -12,6 +12,7 @@ final class AuthViewModel {
     var name = ""
     var email = ""
     var password = ""
+    var confirmPassword = ""
     var errors: [String: String] = [:]
     var isWorking = false
     var shake = 0
@@ -61,11 +62,14 @@ final class AuthViewModel {
 
     func submitEmail() async -> Bool {
         errors = [:]
-        if let e = Validation.email(email) { errors["email"] = e }
         if mode == .register {
-            if let e = Validation.newPassword(password) { errors["password"] = e }
-        } else if password.isEmpty {
-            errors["password"] = "Enter your password"
+            if name.trimmed.count > 120 { errors["displayName"] = "Use at most 120 characters" }
+            if let e = Validation.newEmail(email) { errors["email"] = e }
+            if let e = Validation.newPassword(password, email: email) { errors["password"] = e }
+            if let e = Validation.confirm(password, confirmPassword) { errors["confirmPassword"] = e }
+        } else {
+            if let e = Validation.email(email) { errors["email"] = e }
+            if password.isEmpty { errors["password"] = "Enter your password" }
         }
         guard errors.isEmpty else { shake += 1; Haptics.error(); return false }
 
@@ -76,6 +80,7 @@ final class AuthViewModel {
                 ? try await session.auth.register(email: email.trimmed.lowercased(), password: password, displayName: name.trimmed.isEmpty ? nil : name.trimmed)
                 : try await session.auth.login(email: email.trimmed.lowercased(), password: password)
             password = ""
+            confirmPassword = ""
             await session.didSignIn(user)
             Toast.success(mode == .register ? "Account created" : "Welcome back, \(user.firstName)!")
             return true

@@ -5,7 +5,7 @@ struct EmailAuthSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showForgot = false
     @FocusState private var focus: Field?
-    private enum Field { case name, email, password }
+    private enum Field { case name, email, password, confirm }
 
     var body: some View {
         NavigationStack {
@@ -15,7 +15,7 @@ struct EmailAuthSheet: View {
                         ForEach(AuthViewModel.Mode.allCases) { Text($0.rawValue).tag($0) }
                     }
                     .pickerStyle(.segmented)
-                    .onChange(of: model.mode) { _, _ in model.errors = [:]; Haptics.selection() }
+                    .onChange(of: model.mode) { _, _ in model.errors = [:]; model.confirmPassword = ""; Haptics.selection() }
 
                     Text(model.mode == .signIn ? "Welcome back" : "Create your account")
                         .font(BFFont.title(26)).foregroundStyle(BFColor.text1)
@@ -35,8 +35,20 @@ struct EmailAuthSheet: View {
                                 icon: "lock", contentType: model.mode == .register ? .newPassword : .password, isSecure: true,
                                 error: model.errors["password"], autocapitalization: .never)
                         .focused($focus, equals: .password)
-                        .submitLabel(.go)
-                        .onSubmit(submit)
+                        .submitLabel(model.mode == .register ? .next : .go)
+                        .onSubmit { if model.mode == .register { focus = .confirm } else { submit() } }
+
+                    if model.mode == .register {
+                        Group {
+                            PasswordChecklist(password: model.password, email: model.email)
+                            BFTextField(label: "Confirm password", text: $model.confirmPassword, prompt: "Type it again", icon: "lock.rotation",
+                                        contentType: .newPassword, isSecure: true, error: model.errors["confirmPassword"], autocapitalization: .never)
+                                .focused($focus, equals: .confirm)
+                                .submitLabel(.go)
+                                .onSubmit(submit)
+                        }
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                    }
 
                     if model.mode == .signIn {
                         Button("Forgot password?") { showForgot = true }
@@ -75,12 +87,32 @@ struct EmailAuthSheet: View {
     }
 }
 
+/// Live password rules; each turns green as it's met.
+struct PasswordChecklist: View {
+    let password: String
+    let email: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            ForEach(Validation.passwordRules(password, email: email), id: \.label) { rule in
+                Label(rule.label, systemImage: rule.met ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(rule.met ? BFColor.green : BFColor.text3)
+                    .contentTransition(.symbolEffect(.replace))
+                    .accessibilityValue(rule.met ? "done" : "not yet")
+            }
+        }
+        .animation(BFMotion.quick, value: password)
+    }
+}
+
 struct ForgotPasswordSheet: View {
     @Environment(AppSession.self) private var session
     @Environment(\.dismiss) private var dismiss
     @State var email: String
     @State private var code = ""
     @State private var newPassword = ""
+    @State private var confirmPassword = ""
     @State private var step = 0
     @State private var isWorking = false
     @State private var errors: [String: String] = [:]
@@ -99,15 +131,19 @@ struct ForgotPasswordSheet: View {
                     BFTextField(label: "6-digit code", text: $code, icon: "number", keyboard: .numberPad, contentType: .oneTimeCode, error: errors["code"])
                     BFTextField(label: "New password", text: $newPassword, icon: "lock", contentType: .newPassword, isSecure: true,
                                 error: errors["newPassword"], autocapitalization: .never)
+                    PasswordChecklist(password: newPassword, email: email)
+                    BFTextField(label: "Confirm new password", text: $confirmPassword, icon: "lock.rotation", contentType: .newPassword, isSecure: true,
+                                error: errors["confirmPassword"], autocapitalization: .never)
                 }
                 BFButton(title: step == 0 ? "Send Code" : "Reset Password", kind: .navy, isLoading: isWorking) { Task { await next() } }
                 Spacer()
             }
             .padding(24)
             .animation(BFMotion.gentle, value: step)
+            .animation(BFMotion.quick, value: errors)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
         }
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.large])
     }
 
     private func next() async {
@@ -123,7 +159,8 @@ struct ForgotPasswordSheet: View {
             } catch { Toast.error(error) }
         } else {
             if let e = Validation.resetCode(code) { errors["code"] = e }
-            if let e = Validation.newPassword(newPassword) { errors["newPassword"] = e }
+            if let e = Validation.newPassword(newPassword, email: email) { errors["newPassword"] = e }
+            if let e = Validation.confirm(newPassword, confirmPassword) { errors["confirmPassword"] = e }
             guard errors.isEmpty else { Haptics.error(); return }
             isWorking = true
             defer { isWorking = false }
