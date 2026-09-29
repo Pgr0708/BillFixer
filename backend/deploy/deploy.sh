@@ -20,7 +20,7 @@ npm install --no-save --no-audit --no-fund >/dev/null 2>&1 || true
 npm test
 
 echo "▶ Applying database schema (idempotent)"
-npm run migrate
+npm run migrate:seed   # schema + reference data (both idempotent)
 
 echo "▶ Reloading API workers one at a time"
 pm2 startOrReload ecosystem.config.cjs --update-env

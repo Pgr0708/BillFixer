@@ -32,7 +32,32 @@ INSERT INTO fpl_guidelines (year, region, household_size, amount, source_url, fe
   (2026, 'hi', 5, 44480.00, 'https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/api/2026/hi/5', UTC_TIMESTAMP()),
   (2026, 'hi', 6, 51010.00, 'https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/api/2026/hi/6', UTC_TIMESTAMP()),
   (2026, 'hi', 7, 57540.00, 'https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/api/2026/hi/7', UTC_TIMESTAMP()),
-  (2026, 'hi', 8, 64070.00, 'https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/api/2026/hi/8', UTC_TIMESTAMP())
+  (2026, 'hi', 8, 64070.00, 'https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/api/2026/hi/8', UTC_TIMESTAMP()),
+  -- 2025 (previous year; fetched live from the same HHS API)
+(2025, 'us', 1, 15650.00, 'https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/api/2025/us/1', UTC_TIMESTAMP()),
+  (2025, 'us', 2, 21150.00, 'https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/api/2025/us/2', UTC_TIMESTAMP()),
+  (2025, 'us', 3, 26650.00, 'https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/api/2025/us/3', UTC_TIMESTAMP()),
+  (2025, 'us', 4, 32150.00, 'https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/api/2025/us/4', UTC_TIMESTAMP()),
+  (2025, 'us', 5, 37650.00, 'https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/api/2025/us/5', UTC_TIMESTAMP()),
+  (2025, 'us', 6, 43150.00, 'https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/api/2025/us/6', UTC_TIMESTAMP()),
+  (2025, 'us', 7, 48650.00, 'https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/api/2025/us/7', UTC_TIMESTAMP()),
+  (2025, 'us', 8, 54150.00, 'https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/api/2025/us/8', UTC_TIMESTAMP()),
+  (2025, 'ak', 1, 19550.00, 'https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/api/2025/ak/1', UTC_TIMESTAMP()),
+  (2025, 'ak', 2, 26430.00, 'https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/api/2025/ak/2', UTC_TIMESTAMP()),
+  (2025, 'ak', 3, 33310.00, 'https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/api/2025/ak/3', UTC_TIMESTAMP()),
+  (2025, 'ak', 4, 40190.00, 'https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/api/2025/ak/4', UTC_TIMESTAMP()),
+  (2025, 'ak', 5, 47070.00, 'https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/api/2025/ak/5', UTC_TIMESTAMP()),
+  (2025, 'ak', 6, 53950.00, 'https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/api/2025/ak/6', UTC_TIMESTAMP()),
+  (2025, 'ak', 7, 60830.00, 'https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/api/2025/ak/7', UTC_TIMESTAMP()),
+  (2025, 'ak', 8, 67710.00, 'https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/api/2025/ak/8', UTC_TIMESTAMP()),
+  (2025, 'hi', 1, 17990.00, 'https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/api/2025/hi/1', UTC_TIMESTAMP()),
+  (2025, 'hi', 2, 24320.00, 'https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/api/2025/hi/2', UTC_TIMESTAMP()),
+  (2025, 'hi', 3, 30650.00, 'https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/api/2025/hi/3', UTC_TIMESTAMP()),
+  (2025, 'hi', 4, 36980.00, 'https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/api/2025/hi/4', UTC_TIMESTAMP()),
+  (2025, 'hi', 5, 43310.00, 'https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/api/2025/hi/5', UTC_TIMESTAMP()),
+  (2025, 'hi', 6, 49640.00, 'https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/api/2025/hi/6', UTC_TIMESTAMP()),
+  (2025, 'hi', 7, 55970.00, 'https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/api/2025/hi/7', UTC_TIMESTAMP()),
+  (2025, 'hi', 8, 62300.00, 'https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines/api/2025/hi/8', UTC_TIMESTAMP())
 ON DUPLICATE KEY UPDATE amount = VALUES(amount), source_url = VALUES(source_url), fetched_at = VALUES(fetched_at);
 
 -- Pipeline sources (the pipeline fills in etag / hashes / timestamps).

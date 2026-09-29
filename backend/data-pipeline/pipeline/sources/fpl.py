@@ -67,6 +67,7 @@ def run(conn, force: bool = False) -> Tuple[str, int, str]:
     upserted = 0
     notes = []
     all_rows = []
+    blocked = None  # once HHS refuses this server, don't spend minutes retrying the other year
     for year in (this_year, this_year - 1):
         with conn.cursor() as cur:
             cur.execute("SELECT COUNT(*) AS n FROM fpl_guidelines WHERE year = %s", (year,))
@@ -75,12 +76,20 @@ def run(conn, force: bool = False) -> Tuple[str, int, str]:
         if have == 24 and year < this_year and not force:
             continue  # past years never change
         try:
+            if blocked:
+                raise blocked
             rows = fetch_year(year)
         except http.UpstreamError as exc:
+            blocked = exc
             if have == 24:
                 # Guidelines change once a year; if HHS blocks this server today, the copy we have is still correct.
                 log.warning("fpl %s: source unreachable (%s) — keeping the %s rows already stored", year, exc, have)
                 notes.append(f"{year}: kept existing (source unreachable)")
+                continue
+            if year < this_year:
+                # Last year's table is a convenience (older bills); only the current year is required.
+                log.warning("fpl %s: source unreachable and no stored copy — skipped (current year is what matters)", year)
+                notes.append(f"{year}: unavailable (source unreachable)")
                 continue
             raise
         if not rows:
