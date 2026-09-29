@@ -24,92 +24,103 @@ struct BFTabBar: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            // ── Floating pill card ───────────────────────────────────────
+            // ── Floating white pill card (always light) ──────────────────
             HStack(spacing: 0) {
-                // Left side: Home, Cases
-                ForEach(leftTabs) { tab in
-                    tabItem(tab)
-                }
-
-                // Center gap for the elevated scan button
-                Spacer().frame(width: 80)
-
-                // Right side: Learn, Settings
-                ForEach(rightTabs) { tab in
-                    tabItem(tab)
-                }
+                ForEach(leftTabs)  { tab in tabItem(tab) }
+                Spacer().frame(width: 84)
+                ForEach(rightTabs) { tab in tabItem(tab) }
             }
-            .padding(.horizontal, 8)
-            .padding(.top, 10)
-            .padding(.bottom, 14)
+            .padding(.horizontal, 6)
+            .padding(.top, 12)
+            .padding(.bottom, 16)
             .background(
-                RoundedRectangle(cornerRadius: 32, style: .continuous)
-                    .fill(.white)
-                    .shadow(color: .black.opacity(0.12), radius: 24, y: 8)
-                    .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+                RoundedRectangle(cornerRadius: 36, style: .continuous)
+                    .fill(Color.white)
+                    .shadow(color: Color(hex: 0x2E7DF6).opacity(0.10), radius: 30, y: 10)
+                    .shadow(color: .black.opacity(0.10), radius: 8, y: 2)
             )
-            .padding(.horizontal, 20)
+            .padding(.horizontal, 16)
+            .colorScheme(.light)               // ← ALWAYS light, never goes dark
 
-            // ── Elevated center Scan button (overlaps the pill) ──────────
+            // ── Center Scan — electric blue, elevated ─────────────────────
             Button {
                 Haptics.tap()
                 onScan()
             } label: {
                 ZStack {
+                    // Outer glow ring
+                    Circle()
+                        .fill(Color(hex: 0x3B8BFF).opacity(0.20))
+                        .frame(width: 76, height: 76)
+                    // Main button
                     Circle()
                         .fill(
                             LinearGradient(
-                                colors: [Color(hex: 0x2E7DF6), Color(hex: 0x0B2B5C)],
+                                colors: [Color(hex: 0x3B8BFF), Color(hex: 0x1A5FE0)],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
                         )
-                        .frame(width: 60, height: 60)
-                        .shadow(color: Color(hex: 0x2E7DF6).opacity(0.45), radius: 16, y: 6)
-
+                        .frame(width: 62, height: 62)
+                        .shadow(color: Color(hex: 0x3B8BFF).opacity(0.60), radius: 18, y: 8)
                     Image(systemName: "plus")
-                        .font(.system(size: 26, weight: .bold))
+                        .font(.system(size: 28, weight: .black))
                         .foregroundStyle(.white)
                 }
             }
             .buttonStyle(.pressableQuiet)
-            .offset(y: -20)
+            .offset(y: -22)
             .accessibilityLabel("Scan a medical bill")
         }
-        .padding(.bottom, 8)
+        .padding(.bottom, 6)
     }
 
     // MARK: - Individual tab item
 
     private func tabItem(_ tab: AppTab) -> some View {
         let isActive = selection == tab
+        // Vivid per-tab accent colors
+        let activeColor: Color = switch tab {
+            case .home:     Color(hex: 0x00BFA5)   // vivid teal
+            case .cases:    Color(hex: 0x2E7DF6)   // bright blue
+            case .learn:    Color(hex: 0x8B5CF6)   // vivid violet
+            case .settings: Color(hex: 0x00BFA5)   // vivid teal
+            default:        Color(hex: 0x2E7DF6)
+        }
         return Button {
             guard selection != tab else { return }
             Haptics.selection()
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.72)) {
-                selection = tab
-            }
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.72)) { selection = tab }
         } label: {
-            VStack(spacing: 4) {
+            VStack(spacing: 5) {
                 ZStack {
-                    // Active background circle
+                    // Glow ring behind active circle
                     if isActive {
                         Circle()
-                            .fill(BFColor.teal)
-                            .frame(width: 44, height: 44)
+                            .fill(activeColor.opacity(0.18))
+                            .frame(width: 52, height: 52)
+                            .matchedGeometryEffect(id: "tabGlow", in: ns)
+                    }
+                    // Active fill circle
+                    if isActive {
+                        Circle()
+                            .fill(activeColor)
+                            .frame(width: 42, height: 42)
+                            .shadow(color: activeColor.opacity(0.45), radius: 8, y: 3)
                             .matchedGeometryEffect(id: "tabCircle", in: ns)
                     }
-
                     Image(systemName: tab.symbol)
-                        .font(.system(size: isActive ? 18 : 19, weight: .semibold))
-                        .foregroundStyle(isActive ? .white : BFColor.text3)
+                        .font(.system(size: isActive ? 17 : 18, weight: .semibold))
+                        .foregroundStyle(isActive ? .white : Color(hex: 0xA0AEC0))
                         .symbolEffect(.bounce, value: isActive)
+                        .scaleEffect(isActive ? 1.05 : 1.0)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isActive)
                 }
-                .frame(width: 44, height: 44)
+                .frame(width: 52, height: 44)
 
                 Text(tab.title)
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(isActive ? BFColor.teal : BFColor.text3)
+                    .font(.system(size: 10, weight: isActive ? .bold : .semibold))
+                    .foregroundStyle(isActive ? activeColor : Color(hex: 0xA0AEC0))
             }
             .frame(maxWidth: .infinity)
             .contentShape(Rectangle())

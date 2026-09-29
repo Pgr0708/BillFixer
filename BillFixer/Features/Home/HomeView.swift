@@ -80,41 +80,51 @@ struct HomeView: View {
 
     private var homeBackground: some View {
         ZStack {
-            // Base gradient
+            // Bright, vivid base gradient
             LinearGradient(
-                colors: [Color(hex: 0xEAF4F4), Color(hex: 0xF0F8FF), Color(hex: 0xF7F9FD)],
+                colors: [Color(hex: 0xE0F7F4), Color(hex: 0xEBF4FF), Color(hex: 0xF5F0FF)],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
             .ignoresSafeArea()
 
-            // Top-right teal circle (large, soft)
+            // Top-right vivid teal circle
             Circle()
                 .fill(
                     RadialGradient(
-                        colors: [Color(hex: 0x00BFA5).opacity(0.18), Color.clear],
+                        colors: [Color(hex: 0x00BFA5).opacity(0.30), Color.clear],
+                        center: .center, startRadius: 0, endRadius: 200
+                    )
+                )
+                .frame(width: 400, height: 400)
+                .offset(x: 160, y: -140)
+
+            // Bottom-left vivid blue circle
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [Color(hex: 0x3B8BFF).opacity(0.18), Color.clear],
                         center: .center, startRadius: 0, endRadius: 180
                     )
                 )
                 .frame(width: 360, height: 360)
-                .offset(x: 160, y: -120)
+                .offset(x: -140, y: 520)
 
-            // Bottom-left circle
+            // Mid violet accent
             Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [Color(hex: 0x2E7DF6).opacity(0.08), Color.clear],
-                        center: .center, startRadius: 0, endRadius: 160
-                    )
-                )
-                .frame(width: 320, height: 320)
-                .offset(x: -130, y: 500)
+                .fill(Color(hex: 0x8B5CF6).opacity(0.08))
+                .frame(width: 220, height: 220)
+                .offset(x: 120, y: 380)
 
-            // Mid decorative circle
+            // Subtle stroke rings for depth
             Circle()
-                .fill(Color(hex: 0x00BFA5).opacity(0.06))
-                .frame(width: 200, height: 200)
-                .offset(x: -80, y: 280)
+                .strokeBorder(Color(hex: 0x00BFA5).opacity(0.12), lineWidth: 1)
+                .frame(width: 280)
+                .offset(x: 140, y: -100)
+            Circle()
+                .strokeBorder(Color(hex: 0x3B8BFF).opacity(0.10), lineWidth: 1)
+                .frame(width: 220)
+                .offset(x: -100, y: 400)
         }
     }
 
@@ -270,35 +280,38 @@ struct HomeView: View {
 
     private var quickActionsRow: some View {
         HStack(spacing: 12) {
-            quickTile("Scan Bill",   "doc.viewfinder",       BFColor.blue,  BFColor.blueSoft)  { router.startCapture(.camera) }
-            quickTile("Add EOB",     "doc.text.fill",        BFColor.teal,  BFColor.tealSoft)  { router.startCapture(.photos) }
-            quickTile("Import PDF",  "arrow.down.doc.fill",  BFColor.violet,BFColor.violetSoft){ router.startCapture(.pdf) }
-            quickTile("Help",        "questionmark",         BFColor.text3, BFColor.line)       { router.tab = .learn }
+            quickTile("Scan Bill",  "doc.viewfinder",       Color(hex: 0x2E7DF6), Color(hex: 0xEBF4FF))  { router.startCapture(.camera) }
+            quickTile("Add EOB",    "doc.text.fill",        Color(hex: 0x00BFA5), Color(hex: 0xE0F7F4))  { router.startCapture(.photos) }
+            quickTile("Import PDF", "arrow.down.doc.fill",  Color(hex: 0x8B5CF6), Color(hex: 0xF3EEFF))  { router.startCapture(.pdf) }
+            quickTile("Help",       "questionmark.circle",  Color(hex: 0xF59E0B), Color(hex: 0xFFF8E1))  { router.tab = .learn }
         }
     }
 
     private func quickTile(_ title: String, _ symbol: String, _ tint: Color, _ fill: Color, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            VStack(spacing: 8) {
-                // Circular icon container
-                Circle()
-                    .fill(fill)
-                    .frame(width: 48, height: 48)
-                    .overlay {
-                        Image(systemName: symbol)
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundStyle(tint)
-                    }
+            VStack(spacing: 10) {
+                ZStack {
+                    // Glow ring
+                    Circle().fill(tint.opacity(0.12)).frame(width: 58, height: 58)
+                    // Main icon circle
+                    Circle()
+                        .fill(fill)
+                        .frame(width: 50, height: 50)
+                        .shadow(color: tint.opacity(0.25), radius: 8, y: 3)
+                    Image(systemName: symbol)
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundStyle(tint)
+                }
                 Text(title)
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(BFColor.text2)
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(Color(hex: 0x374151))
                     .lineLimit(1)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
+            .padding(.vertical, 16)
             .background(Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .shadow(color: .black.opacity(0.05), radius: 6, y: 2)
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .shadow(color: .black.opacity(0.06), radius: 8, y: 3)
         }
         .buttonStyle(.plain)
     }
