@@ -61,6 +61,21 @@ enum DropsManager {
         }
     }
 
+    // MARK: - Warning
+
+    static func showWarning(title: String, subtitle: String? = nil) {
+        DispatchQueue.main.async {
+            var drop = Drop(title: title, subtitle: subtitle)
+            drop.icon = UIImage(systemName: "exclamationmark.triangle.fill")?
+                .withTintColor(.systemOrange, renderingMode: .alwaysOriginal)
+            drop.action = Drop.Action(handler: { Drops.hideCurrent() })
+            drop.position = Drop.Position.top
+            drop.duration = Drop.Duration.seconds(3.5)
+            drop.accessibility = Drop.Accessibility(message: "Warning: \(title)")
+            Drops.show(drop)
+        }
+    }
+
     // MARK: - Loading (persists until hide() is called)
 
     static func showLoading(title: String, subtitle: String? = nil) {

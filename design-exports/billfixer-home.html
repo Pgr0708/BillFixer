@@ -1,0 +1,658 @@
+<title>BillFixer Home</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap');
+
+  :root {
+    --navy-deep: #081A38;
+    --navy: #0F2B5B;
+    --navy-light: #1A3F82;
+    --teal: #00B4A0;
+    --teal-light: #00D4BC;
+    --gold: #E8A422;
+    --surface: #FFFFFF;
+    --bg: #F4F5F9;
+    --text-1: #0F1729;
+    --text-2: #475569;
+    --text-3: #94A3B8;
+    --text-4: #CBD5E1;
+    --border: #E8ECF1;
+    --critical: #DC2626;
+    --critical-bg: #FEF2F2;
+    --warning: #D97706;
+    --warning-bg: #FFFBEB;
+    --info: #2563EB;
+    --info-bg: #EFF6FF;
+    --shadow-card: 0 1px 3px rgba(15,23,42,0.04), 0 4px 12px rgba(15,23,42,0.03);
+    --shadow-elevated: 0 4px 16px rgba(15,23,42,0.08), 0 1px 4px rgba(15,23,42,0.04);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --navy-deep: #060E1C;
+      --navy: #0D1F3C;
+      --navy-light: #1A3564;
+      --teal: #00D4BC;
+      --teal-light: #34E8D6;
+      --gold: #F5C35C;
+      --surface: #161B26;
+      --bg: #0C1017;
+      --text-1: #E2E8F0;
+      --text-2: #8B95A8;
+      --text-3: #4B5568;
+      --text-4: #2D3548;
+      --border: #1E2536;
+      --critical: #F87171;
+      --critical-bg: #1F1215;
+      --warning: #FBBF24;
+      --warning-bg: #1F1D10;
+      --info: #60A5FA;
+      --info-bg: #111827;
+      --shadow-card: 0 1px 3px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.08);
+      --shadow-elevated: 0 4px 16px rgba(0,0,0,0.3), 0 1px 4px rgba(0,0,0,0.12);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --navy-deep: #060E1C;
+    --navy: #0D1F3C;
+    --navy-light: #1A3564;
+    --teal: #00D4BC;
+    --teal-light: #34E8D6;
+    --gold: #F5C35C;
+    --surface: #161B26;
+    --bg: #0C1017;
+    --text-1: #E2E8F0;
+    --text-2: #8B95A8;
+    --text-3: #4B5568;
+    --text-4: #2D3548;
+    --border: #1E2536;
+    --critical: #F87171;
+    --critical-bg: #1F1215;
+    --warning: #FBBF24;
+    --warning-bg: #1F1D10;
+    --info: #60A5FA;
+    --info-bg: #111827;
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.08);
+    --shadow-elevated: 0 4px 16px rgba(0,0,0,0.3), 0 1px 4px rgba(0,0,0,0.12);
+    color-scheme: dark;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; background: #1A1A1C; }
+
+  /* ─── Device Frame ─── */
+  .device {
+    width: 393px; height: 852px;
+    margin: 20px auto;
+    border-radius: 48px;
+    overflow: hidden;
+    position: relative;
+    background: var(--bg);
+    box-shadow:
+      0 0 0 10.5px #2C2C2E,
+      0 0 0 11px #48484A,
+      0 0 0 11.5px rgba(255,255,255,0.06),
+      0 24px 80px rgba(0,0,0,0.55);
+  }
+  .island {
+    position: absolute;
+    top: 11px; left: 50%; transform: translateX(-50%);
+    width: 126px; height: 37px;
+    background: #000; border-radius: 20px;
+    z-index: 50;
+  }
+
+  /* ─── Status Bar ─── */
+  .statusbar {
+    position: absolute; top: 0; left: 0; right: 0; height: 54px;
+    display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 0 28px 6px;
+    z-index: 40;
+  }
+  .statusbar-time {
+    font: 600 15px/1 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: #fff; letter-spacing: 0.01em;
+  }
+  .statusbar-icons { display: flex; gap: 5px; align-items: center; }
+
+  /* ─── Scroll Container ─── */
+  .scroll {
+    position: absolute; inset: 0;
+    overflow-y: auto; overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .scroll::-webkit-scrollbar { display: none; }
+
+  /* ─── Hero ─── */
+  .hero {
+    position: relative;
+    padding: 60px 24px 40px;
+    background:
+      radial-gradient(ellipse 120% 80% at 90% 95%, rgba(0,180,160,0.1) 0%, transparent 55%),
+      linear-gradient(172deg, var(--navy-deep) 0%, var(--navy) 50%, var(--navy-light) 100%);
+    overflow: hidden;
+  }
+  .hero::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0.025;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+  }
+  .hero-curve {
+    position: absolute; bottom: -1px; left: 0; right: 0;
+    height: 28px;
+    background: var(--bg);
+    border-radius: 24px 24px 0 0;
+  }
+
+  .hero-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    position: relative; z-index: 1;
+  }
+  .greeting {
+    font: 400 15px/1.4 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 2px;
+  }
+  .username {
+    font: 700 26px/1.15 'Bricolage Grotesque', system-ui, sans-serif;
+    color: #fff; letter-spacing: -0.02em;
+  }
+  .avatar {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    border: 1.5px solid rgba(255,255,255,0.15);
+    display: flex; align-items: center; justify-content: center;
+    font: 500 13px/1 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: rgba(255,255,255,0.75);
+    letter-spacing: 0.03em;
+    flex-shrink: 0;
+  }
+
+  .savings { position: relative; z-index: 1; }
+  .savings-amount {
+    font: 800 44px/1 'Bricolage Grotesque', system-ui, sans-serif;
+    color: #fff; letter-spacing: -0.03em;
+    display: block; margin-bottom: 6px;
+  }
+  .savings-label {
+    font: 400 15px/1.3 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: rgba(255,255,255,0.45);
+    display: block; margin-bottom: 14px;
+  }
+  .savings-meta {
+    display: flex; gap: 6px; align-items: center;
+  }
+  .meta-chip {
+    font: 500 12px/1 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: rgba(255,255,255,0.55);
+    background: rgba(255,255,255,0.08);
+    padding: 5px 10px;
+    border-radius: 8px;
+  }
+  .meta-sep {
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+  }
+
+  /* ─── Body ─── */
+  .body { padding: 0 16px 110px; }
+
+  .section-row {
+    display: flex; align-items: baseline;
+    justify-content: space-between;
+    margin: 20px 0 12px;
+  }
+  .section-label {
+    font: 600 18px/1.2 'Bricolage Grotesque', system-ui, sans-serif;
+    color: var(--text-1); letter-spacing: -0.01em;
+  }
+  .section-action {
+    font: 500 14px/1 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: var(--teal);
+  }
+
+  /* ─── Case Cards ─── */
+  .cases {
+    display: flex; gap: 10px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .cases::-webkit-scrollbar { display: none; }
+
+  .case {
+    min-width: 256px; flex-shrink: 0;
+    background: var(--surface);
+    border-radius: 14px;
+    padding: 16px 16px 14px;
+    box-shadow: var(--shadow-card);
+    scroll-snap-align: start;
+    border: 1px solid var(--border);
+    position: relative; overflow: hidden;
+  }
+  .case::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 12px; bottom: 12px;
+    width: 3px; border-radius: 0 2px 2px 0;
+  }
+  .case.s-active::before { background: var(--teal); }
+  .case.s-review::before { background: var(--warning); }
+
+  .case-head {
+    display: flex; justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 14px;
+  }
+  .case-name {
+    font: 600 15px/1.3 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: var(--text-1);
+  }
+  .case-type {
+    font: 400 13px/1.3 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: var(--text-3); margin-top: 2px;
+  }
+  .pill {
+    font: 500 11px/1 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    padding: 4px 9px; border-radius: 6px;
+    display: flex; align-items: center; gap: 4px;
+    flex-shrink: 0;
+  }
+  .pill-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: currentColor;
+  }
+  .pill-active { background: rgba(0,180,160,0.1); color: var(--teal); }
+  .pill-review { background: rgba(217,119,6,0.08); color: var(--warning); }
+
+  .case-foot {
+    display: flex; justify-content: space-between;
+    align-items: baseline;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .case-stats {
+    font: 400 13px/1 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: var(--text-3);
+  }
+  .case-stats b { color: var(--text-2); font-weight: 600; }
+  .case-value {
+    font: 700 18px/1 'Bricolage Grotesque', system-ui, sans-serif;
+    color: var(--teal); letter-spacing: -0.01em;
+  }
+
+  /* ─── Scan CTA ─── */
+  .scan-cta {
+    margin-top: 20px;
+    padding: 16px 18px;
+    background:
+      radial-gradient(circle at 100% 0%, rgba(0,180,160,0.15) 0%, transparent 50%),
+      linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+    border-radius: 16px;
+    display: flex; align-items: center; gap: 14px;
+    position: relative; overflow: hidden;
+    cursor: pointer;
+  }
+  .scan-cta::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0.02; mix-blend-mode: overlay; pointer-events: none;
+  }
+  .scan-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .scan-icon svg {
+    width: 22px; height: 22px;
+    stroke: #fff; fill: none;
+    stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
+  }
+  .scan-text {
+    flex: 1; position: relative; z-index: 1;
+  }
+  .scan-text h3 {
+    font: 600 16px/1.3 'Bricolage Grotesque', system-ui, sans-serif;
+    color: #fff; letter-spacing: -0.01em; margin-bottom: 2px;
+  }
+  .scan-text p {
+    font: 400 13px/1.3 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: rgba(255,255,255,0.5);
+  }
+  .scan-arrow {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    position: relative; z-index: 1;
+  }
+  .scan-arrow svg {
+    width: 14px; height: 14px;
+    stroke: rgba(255,255,255,0.5); fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  }
+
+  /* ─── Findings ─── */
+  .findings-group {
+    background: var(--surface);
+    border-radius: 14px;
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .finding {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px;
+  }
+  .finding + .finding {
+    border-top: 1px solid var(--border);
+  }
+  .finding-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%; flex-shrink: 0;
+  }
+  .dot-critical { background: var(--critical); }
+  .dot-warning { background: var(--warning); }
+  .dot-info { background: var(--info); }
+
+  .finding-body { flex: 1; min-width: 0; }
+  .finding-title {
+    font: 500 15px/1.3 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: var(--text-1);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .finding-desc {
+    font: 400 13px/1.3 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: var(--text-3); margin-top: 1px;
+  }
+  .finding-amount {
+    font: 600 16px/1 'Bricolage Grotesque', system-ui, sans-serif;
+    color: var(--teal); letter-spacing: -0.01em; flex-shrink: 0;
+  }
+
+  /* ─── Tab Bar ─── */
+  .tabs {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 82px;
+    background: var(--surface);
+    border-top: 0.5px solid var(--border);
+    display: flex; align-items: flex-start;
+    justify-content: space-around;
+    padding-top: 6px;
+    z-index: 30;
+  }
+  .tab {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 2px;
+    background: none; border: none;
+    cursor: pointer; padding: 4px 0; width: 52px;
+  }
+  .tab svg {
+    width: 24px; height: 24px;
+    fill: none; stroke: var(--text-3);
+    stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
+  }
+  .tab span {
+    font: 500 10px/1.2 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: var(--text-3);
+  }
+  .tab.on svg { stroke: var(--teal); }
+  .tab.on span { color: var(--teal); }
+
+  .tab-center {
+    width: 50px; height: 50px;
+    border-radius: 50%;
+    background: var(--teal);
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: -14px;
+    box-shadow: 0 4px 16px rgba(0,180,160,0.3);
+  }
+  .tab-center svg {
+    width: 24px; height: 24px;
+    fill: none; stroke: #fff;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  }
+
+  .home-bar {
+    position: absolute;
+    bottom: 8px; left: 50%; transform: translateX(-50%);
+    width: 134px; height: 5px;
+    border-radius: 3px;
+    background: var(--text-4);
+    opacity: 0.4;
+    z-index: 40;
+  }
+
+  @media (max-width: 440px) {
+    .device {
+      width: 100%; height: 100vh;
+      margin: 0; border-radius: 0;
+      box-shadow: none;
+    }
+  }
+</style>
+
+<div class="device">
+  <div class="island"></div>
+
+  <div class="statusbar">
+    <span class="statusbar-time">9:41</span>
+    <span class="statusbar-icons">
+      <svg width="16" height="11" viewBox="0 0 16 11" fill="none">
+        <path d="M8 9a1 1 0 110 2 1 1 0 010-2z" fill="#fff"/>
+        <path d="M4.8 6.8a4.5 4.5 0 016.4 0" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>
+        <path d="M2 4a7.5 7.5 0 0112 0" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+      <svg width="17" height="11" viewBox="0 0 17 11" fill="#fff">
+        <rect x="0" y="7.5" width="3" height="3.5" rx="0.75"/>
+        <rect x="4.5" y="5" width="3" height="6" rx="0.75"/>
+        <rect x="9" y="2.5" width="3" height="8.5" rx="0.75"/>
+        <rect x="13.5" y="0" width="3" height="11" rx="0.75"/>
+      </svg>
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
+        <rect x="0.5" y="0.5" width="21" height="11" rx="2.5" stroke="#fff" stroke-opacity="0.35"/>
+        <rect x="22.5" y="3.5" width="2" height="5" rx="1" fill="#fff" fill-opacity="0.4"/>
+        <rect x="2" y="2" width="17.5" height="8" rx="1.5" fill="#fff"/>
+      </svg>
+    </span>
+  </div>
+
+  <div class="scroll">
+    <!-- ── Hero ── -->
+    <div class="hero">
+      <div class="hero-top">
+        <div>
+          <p class="greeting">Good morning</p>
+          <p class="username">Parth</p>
+        </div>
+        <div class="avatar">PG</div>
+      </div>
+
+      <div class="savings">
+        <span class="savings-amount">$2,847</span>
+        <span class="savings-label">potential savings found</span>
+        <div class="savings-meta">
+          <span class="meta-chip"><strong>3</strong> cases</span>
+          <span class="meta-sep"></span>
+          <span class="meta-chip"><strong>9</strong> findings</span>
+        </div>
+      </div>
+
+      <div class="hero-curve"></div>
+    </div>
+
+    <div class="body">
+      <!-- ── Active Cases ── -->
+      <div class="section-row">
+        <span class="section-label">Active Cases</span>
+        <span class="section-action">See all</span>
+      </div>
+
+      <div class="cases">
+        <div class="case s-active">
+          <div class="case-head">
+            <div>
+              <div class="case-name">Memorial Hospital</div>
+              <div class="case-type">Emergency visit · Jun 15</div>
+            </div>
+            <span class="pill pill-active">
+              <span class="pill-dot"></span>Active
+            </span>
+          </div>
+          <div class="case-foot">
+            <span class="case-stats"><b>4</b> findings · <b>2</b> strong</span>
+            <span class="case-value">$1,320</span>
+          </div>
+        </div>
+
+        <div class="case s-review">
+          <div class="case-head">
+            <div>
+              <div class="case-name">City Medical Center</div>
+              <div class="case-type">Lab work · Jul 22</div>
+            </div>
+            <span class="pill pill-review">
+              <span class="pill-dot"></span>Review
+            </span>
+          </div>
+          <div class="case-foot">
+            <span class="case-stats"><b>2</b> findings · <b>1</b> strong</span>
+            <span class="case-value">$487</span>
+          </div>
+        </div>
+
+        <div class="case s-active">
+          <div class="case-head">
+            <div>
+              <div class="case-name">Sunrise Radiology</div>
+              <div class="case-type">MRI · Aug 3</div>
+            </div>
+            <span class="pill pill-active">
+              <span class="pill-dot"></span>Active
+            </span>
+          </div>
+          <div class="case-foot">
+            <span class="case-stats"><b>3</b> findings · <b>1</b> strong</span>
+            <span class="case-value">$1,040</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Scan CTA ── -->
+      <div class="scan-cta">
+        <div class="scan-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M3 7V5a2 2 0 012-2h2"/>
+            <path d="M17 3h2a2 2 0 012 2v2"/>
+            <path d="M21 17v2a2 2 0 01-2 2h-2"/>
+            <path d="M7 21H5a2 2 0 01-2-2v-2"/>
+            <line x1="4" y1="12" x2="20" y2="12"/>
+          </svg>
+        </div>
+        <div class="scan-text">
+          <h3>Scan a new bill</h3>
+          <p>Take a photo or upload a document</p>
+        </div>
+        <div class="scan-arrow">
+          <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+        </div>
+      </div>
+
+      <!-- ── Recent Findings ── -->
+      <div class="section-row">
+        <span class="section-label">Recent Findings</span>
+        <span class="section-action">View all</span>
+      </div>
+
+      <div class="findings-group">
+        <div class="finding">
+          <div class="finding-dot dot-critical"></div>
+          <div class="finding-body">
+            <div class="finding-title">EOB mismatch — Line 14</div>
+            <div class="finding-desc">Billed $4,200 vs EOB allowed $2,880</div>
+          </div>
+          <span class="finding-amount">$1,320</span>
+        </div>
+
+        <div class="finding">
+          <div class="finding-dot dot-warning"></div>
+          <div class="finding-body">
+            <div class="finding-title">Duplicate charge</div>
+            <div class="finding-desc">CPT 99285 billed twice on 6/15</div>
+          </div>
+          <span class="finding-amount">$487</span>
+        </div>
+
+        <div class="finding">
+          <div class="finding-dot dot-info"></div>
+          <div class="finding-body">
+            <div class="finding-title">Above fair price</div>
+            <div class="finding-desc">MRI charge 38% above area median</div>
+          </div>
+          <span class="finding-amount">$640</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Tab Bar ── -->
+  <div class="tabs">
+    <button class="tab on">
+      <svg viewBox="0 0 24 24">
+        <path d="M4 12l8-7 8 7"/>
+        <path d="M6 10.5V19a1 1 0 001 1h3v-4.5a.5.5 0 01.5-.5h3a.5.5 0 01.5.5V20h3a1 1 0 001-1v-8.5"/>
+      </svg>
+      <span>Home</span>
+    </button>
+    <button class="tab">
+      <svg viewBox="0 0 24 24">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+        <path d="M14 2v6h6"/>
+        <line x1="10" y1="13" x2="14" y2="13"/>
+        <line x1="10" y1="17" x2="14" y2="17"/>
+      </svg>
+      <span>Cases</span>
+    </button>
+    <button class="tab-center">
+      <svg viewBox="0 0 24 24">
+        <path d="M3 7V5a2 2 0 012-2h2"/>
+        <path d="M17 3h2a2 2 0 012 2v2"/>
+        <path d="M21 17v2a2 2 0 01-2 2h-2"/>
+        <path d="M7 21H5a2 2 0 01-2-2v-2"/>
+        <line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+    </button>
+    <button class="tab">
+      <svg viewBox="0 0 24 24">
+        <path d="M18 8A6 6 0 106 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 01-3.46 0"/>
+      </svg>
+      <span>Alerts</span>
+    </button>
+    <button class="tab">
+      <svg viewBox="0 0 24 24">
+        <circle cx="12" cy="8" r="4"/>
+        <path d="M20 21a8 8 0 00-16 0"/>
+      </svg>
+      <span>Account</span>
+    </button>
+  </div>
+
+  <div class="home-bar"></div>
+</div>

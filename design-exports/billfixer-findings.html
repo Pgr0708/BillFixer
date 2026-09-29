@@ -1,0 +1,442 @@
+<title>BillFixer Findings</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap');
+
+  :root {
+    --navy-deep: #081A38;
+    --navy: #0F2B5B;
+    --navy-light: #1A3F82;
+    --teal: #00B4A0;
+    --teal-light: #00D4BC;
+    --gold: #E8A422;
+    --gold-light: #F0B840;
+    --red: #E54D42;
+    --amber: #E8A422;
+    --blue: #4E8AE6;
+    --surface: #F5F6F8;
+    --card: #FFFFFF;
+    --text-1: #111827;
+    --text-2: #4B5563;
+    --text-3: #9CA3AF;
+    --divider: rgba(0,0,0,0.05);
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; background: #1A1A1C; }
+
+  .device {
+    width: 393px; height: 852px;
+    margin: 20px auto;
+    border-radius: 48px;
+    overflow: hidden;
+    position: relative;
+    background: var(--surface);
+    box-shadow:
+      0 0 0 10.5px #2C2C2E,
+      0 0 0 11px #48484A,
+      0 0 0 11.5px rgba(255,255,255,0.06),
+      0 24px 80px rgba(0,0,0,0.55);
+  }
+
+  .island {
+    position: absolute;
+    top: 11px; left: 50%; transform: translateX(-50%);
+    width: 126px; height: 37px;
+    background: #000; border-radius: 20px;
+    z-index: 50;
+  }
+
+  .screen {
+    position: absolute; inset: 0;
+    overflow-y: auto; overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  .screen::-webkit-scrollbar { display: none; }
+
+  /* ─── Header ─── */
+  .header {
+    padding: 62px 24px 32px;
+    position: relative; overflow: hidden;
+    background:
+      radial-gradient(ellipse 90% 60% at 80% 90%, rgba(0,180,160,0.08) 0%, transparent 55%),
+      linear-gradient(172deg, var(--navy-deep) 0%, var(--navy) 50%, #12376E 100%);
+  }
+  .header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0.025; mix-blend-mode: overlay; pointer-events: none;
+  }
+  .header::after {
+    content: '';
+    position: absolute; bottom: -1px; left: 0; right: 0; height: 20px;
+    background: var(--surface); border-radius: 18px 18px 0 0;
+  }
+
+  .nav {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 20px; position: relative; z-index: 1;
+  }
+  .nav-back {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .nav-label {
+    font: 600 16px/1 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: #fff;
+  }
+
+  .hospital {
+    font: 700 22px/1.2 'Bricolage Grotesque', system-ui, sans-serif;
+    color: #fff; letter-spacing: -0.02em;
+    margin-bottom: 4px; position: relative; z-index: 1;
+  }
+  .visit-meta {
+    font: 400 13px/1.4 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 20px; position: relative; z-index: 1;
+  }
+
+  .stats {
+    display: flex; gap: 10px; position: relative; z-index: 1;
+  }
+  .stat {
+    flex: 1;
+    background: rgba(255,255,255,0.06);
+    border-radius: 12px; padding: 12px;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .stat-val {
+    font: 700 22px/1.2 'Bricolage Grotesque', system-ui, sans-serif;
+    margin-bottom: 2px;
+  }
+  .stat-val.savings { color: var(--teal-light); }
+  .stat-val.white { color: #fff; }
+  .stat-lbl {
+    font: 400 11px/1.3 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: rgba(255,255,255,0.35);
+  }
+
+  /* ─── Body ─── */
+  .body { padding: 4px 16px 40px; }
+
+  /* ─── Recommended action ─── */
+  .rec {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 16px;
+    margin: 12px 0 20px;
+    border-left: 3px solid var(--gold);
+  }
+  .rec-tag {
+    display: inline-block;
+    font: 600 11px/1 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: var(--gold);
+    background: rgba(232,164,34,0.08);
+    padding: 4px 8px; border-radius: 4px;
+    margin-bottom: 10px;
+  }
+  .rec-title {
+    font: 600 16px/1.3 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: var(--text-1);
+    margin-bottom: 4px;
+  }
+  .rec-desc {
+    font: 400 13px/1.5 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: var(--text-2);
+    margin-bottom: 14px;
+  }
+  .rec-actions { display: flex; gap: 8px; }
+  .btn-fill {
+    flex: 1; height: 40px; border: none; border-radius: 10px;
+    background: var(--teal); color: #fff;
+    font: 600 14px/1 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    cursor: pointer;
+  }
+  .btn-ghost {
+    height: 40px; padding: 0 16px; border-radius: 10px;
+    background: rgba(0,180,160,0.08); color: var(--teal);
+    font: 600 14px/1 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    border: none; cursor: pointer;
+  }
+
+  /* ─── Section label ─── */
+  .section-label {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px; padding: 0 2px;
+  }
+  .section-label h3 {
+    font: 600 16px/1.2 'Bricolage Grotesque', system-ui, sans-serif;
+    color: var(--text-1); letter-spacing: -0.01em;
+  }
+  .section-label span {
+    font: 400 12px/1 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: var(--text-3);
+  }
+
+  /* ─── Grouped findings list ─── */
+  .findings-group {
+    background: var(--card);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .finding {
+    padding: 14px 16px;
+    cursor: pointer;
+  }
+  .finding + .finding {
+    border-top: 1px solid var(--divider);
+  }
+
+  .finding-row {
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .sev-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    margin-top: 6px; flex-shrink: 0;
+  }
+  .sev-dot.critical { background: var(--red); }
+  .sev-dot.moderate { background: var(--amber); }
+  .sev-dot.advisory { background: var(--blue); }
+
+  .finding-body { flex: 1; min-width: 0; }
+  .finding-name {
+    font: 600 15px/1.3 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: var(--text-1); margin-bottom: 2px;
+  }
+  .finding-sub {
+    font: 400 13px/1.4 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: var(--text-3); margin-bottom: 6px;
+  }
+
+  .finding-meta {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .meta-pill {
+    font: 500 11px/1 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    padding: 3px 7px; border-radius: 4px;
+  }
+  .meta-pill.critical { background: rgba(229,77,66,0.08); color: var(--red); }
+  .meta-pill.moderate { background: rgba(232,164,34,0.08); color: var(--amber); }
+  .meta-pill.advisory { background: rgba(78,138,230,0.08); color: var(--blue); }
+  .meta-pill.conf { background: rgba(0,180,160,0.06); color: var(--teal); }
+
+  .finding-amount {
+    font: 700 18px/1.2 'Bricolage Grotesque', system-ui, sans-serif;
+    color: var(--teal);
+    flex-shrink: 0; align-self: center;
+  }
+
+  /* Evidence inline */
+  .evidence {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: var(--surface);
+    border-radius: 8px;
+  }
+  .ev-row {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 4px;
+  }
+  .ev-row:last-child { margin-bottom: 0; }
+  .ev-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .ev-dot.bill { background: var(--red); opacity: 0.6; }
+  .ev-dot.eob { background: var(--blue); opacity: 0.6; }
+  .ev-dot.mrf { background: var(--teal); opacity: 0.6; }
+  .ev-text {
+    font: 400 12px/1.4 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: var(--text-2);
+  }
+  .ev-text strong {
+    font-weight: 600; color: var(--text-1);
+  }
+
+  /* Chevron */
+  .chevron {
+    flex-shrink: 0; align-self: center;
+    color: var(--text-3);
+  }
+
+  .home-bar {
+    position: absolute;
+    bottom: 8px; left: 50%; transform: translateX(-50%);
+    width: 134px; height: 5px;
+    border-radius: 3px;
+    background: rgba(0,0,0,0.08);
+    z-index: 40;
+  }
+
+  @media (max-width: 440px) {
+    .device {
+      width: 100%; height: 100vh;
+      margin: 0; border-radius: 0;
+      box-shadow: none;
+    }
+  }
+</style>
+
+<div class="device">
+  <div class="island"></div>
+  <div class="screen">
+    <!-- Header -->
+    <div class="header">
+      <div class="nav">
+        <div class="nav-back">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 19l-7-7 7-7"/>
+          </svg>
+        </div>
+        <span class="nav-label">Analysis Complete</span>
+      </div>
+
+      <h1 class="hospital">Memorial Hospital</h1>
+      <p class="visit-meta">Emergency Visit · Jun 15, 2024 · 2 pages</p>
+
+      <div class="stats">
+        <div class="stat">
+          <p class="stat-val savings">$2,489</p>
+          <p class="stat-lbl">Potential savings</p>
+        </div>
+        <div class="stat">
+          <p class="stat-val white">4</p>
+          <p class="stat-lbl">Findings</p>
+        </div>
+        <div class="stat">
+          <p class="stat-val white">2</p>
+          <p class="stat-lbl">Strong</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="body">
+      <!-- Recommended action -->
+      <div class="rec">
+        <div class="rec-tag">Recommended</div>
+        <h3 class="rec-title">Request an itemized statement</h3>
+        <p class="rec-desc">Your bill has 3 bundled charges. An itemized breakdown may reveal errors hiding in the totals.</p>
+        <div class="rec-actions">
+          <button class="btn-fill">Generate Letter</button>
+          <button class="btn-ghost">Details</button>
+        </div>
+      </div>
+
+      <!-- Findings -->
+      <div class="section-label">
+        <h3>Findings</h3>
+        <span>4 issues found</span>
+      </div>
+
+      <div class="findings-group">
+        <!-- Finding 1 -->
+        <div class="finding">
+          <div class="finding-row">
+            <div class="sev-dot critical"></div>
+            <div class="finding-body">
+              <p class="finding-name">EOB Mismatch — Line 14</p>
+              <p class="finding-sub">Billed amount exceeds insurer's allowed amount</p>
+              <div class="finding-meta">
+                <span class="meta-pill critical">Strong</span>
+                <span class="meta-pill conf">92%</span>
+              </div>
+              <div class="evidence">
+                <div class="ev-row">
+                  <div class="ev-dot bill"></div>
+                  <span class="ev-text">Bill p.2, line 14: <strong>$4,200</strong></span>
+                </div>
+                <div class="ev-row">
+                  <div class="ev-dot eob"></div>
+                  <span class="ev-text">EOB allowed: <strong>$2,880</strong></span>
+                </div>
+              </div>
+            </div>
+            <span class="finding-amount">$1,320</span>
+          </div>
+        </div>
+
+        <!-- Finding 2 -->
+        <div class="finding">
+          <div class="finding-row">
+            <div class="sev-dot critical"></div>
+            <div class="finding-body">
+              <p class="finding-name">Duplicate Charge</p>
+              <p class="finding-sub">CPT 99285 appears twice on the same date</p>
+              <div class="finding-meta">
+                <span class="meta-pill critical">Strong</span>
+                <span class="meta-pill conf">88%</span>
+              </div>
+              <div class="evidence">
+                <div class="ev-row">
+                  <div class="ev-dot bill"></div>
+                  <span class="ev-text">Lines 8 & 12: <strong>CPT 99285 ×2</strong></span>
+                </div>
+                <div class="ev-row">
+                  <div class="ev-dot eob"></div>
+                  <span class="ev-text">EOB shows <strong>1 unit</strong></span>
+                </div>
+              </div>
+            </div>
+            <span class="finding-amount">$487</span>
+          </div>
+        </div>
+
+        <!-- Finding 3 -->
+        <div class="finding">
+          <div class="finding-row">
+            <div class="sev-dot moderate"></div>
+            <div class="finding-body">
+              <p class="finding-name">Above Fair Price</p>
+              <p class="finding-sub">MRI charge above area median</p>
+              <div class="finding-meta">
+                <span class="meta-pill moderate">Moderate</span>
+                <span class="meta-pill conf">76%</span>
+              </div>
+              <div class="evidence">
+                <div class="ev-row">
+                  <div class="ev-dot bill"></div>
+                  <span class="ev-text">Bill p.1: <strong>$2,340</strong></span>
+                </div>
+                <div class="ev-row">
+                  <div class="ev-dot mrf"></div>
+                  <span class="ev-text">Area median: <strong>$1,700</strong></span>
+                </div>
+              </div>
+            </div>
+            <span class="finding-amount">$640</span>
+          </div>
+        </div>
+
+        <!-- Finding 4 -->
+        <div class="finding">
+          <div class="finding-row">
+            <div class="sev-dot advisory"></div>
+            <div class="finding-body">
+              <p class="finding-name">Math Error in Subtotal</p>
+              <p class="finding-sub">Line items don't add up to stated total</p>
+              <div class="finding-meta">
+                <span class="meta-pill advisory">Advisory</span>
+                <span class="meta-pill conf">95%</span>
+              </div>
+              <div class="evidence">
+                <div class="ev-row">
+                  <div class="ev-dot bill"></div>
+                  <span class="ev-text">Sum of lines 1–15: <strong>$6,758</strong></span>
+                </div>
+                <div class="ev-row">
+                  <div class="ev-dot bill"></div>
+                  <span class="ev-text">Stated subtotal: <strong>$6,800</strong></span>
+                </div>
+              </div>
+            </div>
+            <span class="finding-amount">$42</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="home-bar"></div>
+</div>

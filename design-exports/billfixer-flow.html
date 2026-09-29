@@ -1,0 +1,894 @@
+<title>BillFixer App Flow</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600&display=swap');
+
+  :root {
+    --canvas: #0E1117;
+    --surface: #161B22;
+    --surface-raised: #1C2129;
+    --border: rgba(255,255,255,0.06);
+    --border-hover: rgba(255,255,255,0.10);
+    --navy-deep: #081A38;
+    --navy: #0F2B5B;
+    --navy-light: #1A3F82;
+    --teal: #00B4A0;
+    --teal-light: #00D4BC;
+    --gold: #E8A422;
+    --red: #E54D42;
+    --amber: #E8A422;
+    --blue: #4E8AE6;
+    --text-1: #E6EDF3;
+    --text-2: #8B949E;
+    --text-3: #484F58;
+    color-scheme: dark;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    min-height: 100%;
+    background: var(--canvas);
+    color: var(--text-1);
+    font: 400 16px/1.55 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body { padding: 0 16px; }
+
+  .page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 48px 0 64px;
+  }
+
+  /* ─── Header ─── */
+  .page-header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .page-header h1 {
+    font: 600 28px/1.2 'Bricolage Grotesque', system-ui, sans-serif;
+    color: var(--text-1);
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+  .page-header p {
+    font: 400 14px/1.5 -apple-system, system-ui, sans-serif;
+    color: var(--text-2);
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font: 500 12px/1 -apple-system, system-ui, sans-serif;
+    color: var(--teal);
+    background: rgba(0,180,160,0.08);
+    border: 1px solid rgba(0,180,160,0.12);
+    padding: 5px 10px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+  }
+  .badge-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--teal);
+  }
+
+  /* ─── Flow grid ─── */
+  .flow {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px 20px;
+    margin-bottom: 48px;
+  }
+
+  @media (max-width: 800px) {
+    .flow { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 520px) {
+    .flow { grid-template-columns: 1fr; gap: 20px; }
+  }
+
+  /* ─── Screen card ─── */
+  .screen-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 16px 14px;
+    position: relative;
+    transition: border-color 0.2s ease;
+  }
+  .screen-card:hover {
+    border-color: var(--border-hover);
+  }
+
+  .screen-num {
+    position: absolute;
+    top: -8px; left: 16px;
+    font: 500 11px/1 -apple-system, system-ui, sans-serif;
+    color: var(--text-3);
+    background: var(--surface);
+    padding: 2px 6px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+  }
+
+  .screen-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-top: 4px;
+  }
+  .screen-label h3 {
+    font: 600 15px/1.2 'Bricolage Grotesque', system-ui, sans-serif;
+    color: var(--text-1);
+    letter-spacing: -0.01em;
+  }
+  .screen-label .arrow {
+    color: var(--text-3);
+    font-size: 14px;
+  }
+
+  /* ─── Mini device ─── */
+  .mini-device {
+    width: 100%;
+    aspect-ratio: 393 / 852;
+    max-height: 380px;
+    border-radius: 24px;
+    overflow: hidden;
+    position: relative;
+    box-shadow:
+      0 0 0 3px #2C2C2E,
+      0 0 0 3.5px #48484A,
+      0 8px 32px rgba(0,0,0,0.4);
+    margin: 0 auto;
+  }
+
+  .mini-island {
+    position: absolute;
+    top: 5px; left: 50%; transform: translateX(-50%);
+    width: 52px; height: 15px;
+    background: #000; border-radius: 8px;
+    z-index: 10;
+  }
+
+  /* ─── Screen contents ─── */
+
+  /* 1. Splash */
+  .s-splash {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 90% 60% at 50% 55%, rgba(0,180,160,0.06) 0%, transparent 60%),
+      linear-gradient(172deg, var(--navy-deep) 0%, var(--navy) 45%, #12376E 100%);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+  }
+  .s-splash .logo-icon {
+    width: 32px; height: 32px; margin-bottom: 12px;
+    opacity: 0.9;
+  }
+  .s-splash h2 {
+    font: 600 14px/1.2 'Bricolage Grotesque', system-ui, sans-serif;
+    color: #fff; margin-bottom: 2px;
+  }
+  .s-splash .tag {
+    font: 400 9px/1.3 -apple-system, system-ui, sans-serif;
+    color: rgba(255,255,255,0.4);
+  }
+  .s-splash .loader-bar {
+    position: absolute; bottom: 44px; left: 32px; right: 32px;
+    height: 1.5px; background: rgba(255,255,255,0.06); border-radius: 1px;
+    overflow: hidden;
+  }
+  .s-splash .loader-fill {
+    height: 100%; width: 65%;
+    background: linear-gradient(90deg, var(--teal), var(--teal-light));
+    border-radius: 1px;
+  }
+
+  /* 2. Onboarding */
+  .s-onboarding {
+    position: absolute; inset: 0;
+    background: #FFFFFF;
+    display: flex; flex-direction: column;
+    align-items: center;
+    padding: 28px 16px 0;
+  }
+  .onb-illust {
+    width: 80%; aspect-ratio: 4/3;
+    background: #F6F7FA;
+    border-radius: 10px;
+    margin: 20px 0 14px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .onb-title {
+    font: 600 13px/1.2 'Bricolage Grotesque', system-ui, sans-serif;
+    color: #111827; margin-bottom: 4px; text-align: center;
+  }
+  .onb-desc {
+    font: 400 9px/1.4 -apple-system, system-ui, sans-serif;
+    color: #6B7280; text-align: center; max-width: 85%;
+    margin-bottom: 14px;
+  }
+  .onb-dots {
+    display: flex; gap: 4px; margin-bottom: 12px;
+  }
+  .onb-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: #D1D5DB;
+  }
+  .onb-dot.active { background: var(--teal); width: 14px; border-radius: 3px; }
+  .onb-btn {
+    width: 80%; height: 28px; border-radius: 8px;
+    background: var(--teal); border: none;
+    font: 500 10px/1 -apple-system, system-ui, sans-serif;
+    color: #fff;
+  }
+
+  /* 3. Home */
+  .s-home {
+    position: absolute; inset: 0;
+    background: #F5F6F8;
+    display: flex; flex-direction: column;
+  }
+  .home-header {
+    background:
+      radial-gradient(ellipse 90% 60% at 80% 90%, rgba(0,180,160,0.08) 0%, transparent 55%),
+      linear-gradient(172deg, var(--navy-deep) 0%, var(--navy) 50%, #12376E 100%);
+    padding: 28px 12px 18px;
+    border-radius: 0 0 10px 10px;
+  }
+  .home-greeting {
+    font: 400 9px/1.3 -apple-system, system-ui, sans-serif;
+    color: rgba(255,255,255,0.4); margin-bottom: 2px;
+  }
+  .home-name {
+    font: 600 14px/1.2 'Bricolage Grotesque', system-ui, sans-serif;
+    color: #fff; margin-bottom: 10px;
+  }
+  .home-savings-row {
+    display: flex; gap: 6px;
+  }
+  .home-stat {
+    flex: 1; background: rgba(255,255,255,0.06);
+    border-radius: 6px; padding: 6px;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .home-stat-val {
+    font: 600 12px/1.2 'Bricolage Grotesque', system-ui, sans-serif;
+    color: var(--teal-light);
+  }
+  .home-stat-lbl {
+    font: 400 7px/1.2 -apple-system, system-ui, sans-serif;
+    color: rgba(255,255,255,0.35);
+  }
+  .home-body { flex: 1; padding: 8px 10px; }
+  .home-card {
+    background: #fff; border-radius: 8px; padding: 8px;
+    border: 1px solid rgba(0,0,0,0.04);
+    margin-bottom: 6px;
+  }
+  .home-card-title {
+    font: 500 9px/1.3 -apple-system, system-ui, sans-serif;
+    color: #111827; margin-bottom: 2px;
+  }
+  .home-card-sub {
+    font: 400 7px/1.3 -apple-system, system-ui, sans-serif;
+    color: #9CA3AF;
+  }
+  .home-tab-bar {
+    height: 32px; background: #fff;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    display: flex; align-items: center; justify-content: space-around;
+    padding: 0 8px;
+  }
+  .tab-dot {
+    width: 4px; height: 4px; border-radius: 50%;
+    background: #9CA3AF;
+  }
+  .tab-dot.active { background: var(--teal); }
+
+  /* 4. Scan */
+  .s-scan {
+    position: absolute; inset: 0;
+    background: linear-gradient(175deg, #12161E 0%, #0A0E14 50%, #0E1218 100%);
+    display: flex; flex-direction: column;
+  }
+  .scan-top {
+    padding: 26px 12px 0;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .scan-icon {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+  }
+  .scan-title-text {
+    font: 500 10px/1 -apple-system, system-ui, sans-serif;
+    color: #fff;
+  }
+  .scan-viewfinder {
+    flex: 1; margin: 8px 14px;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 4px;
+    position: relative;
+  }
+  .scan-corner {
+    position: absolute; width: 10px; height: 10px;
+    border-color: #fff; border-style: solid; border-width: 0;
+  }
+  .scan-corner.tl { top: -1px; left: -1px; border-top-width: 2px; border-left-width: 2px; border-radius: 2px 0 0 0; }
+  .scan-corner.tr { top: -1px; right: -1px; border-top-width: 2px; border-right-width: 2px; border-radius: 0 2px 0 0; }
+  .scan-corner.bl { bottom: -1px; left: -1px; border-bottom-width: 2px; border-left-width: 2px; border-radius: 0 0 0 2px; }
+  .scan-corner.br { bottom: -1px; right: -1px; border-bottom-width: 2px; border-right-width: 2px; border-radius: 0 0 2px 0; }
+  .scan-line-anim {
+    position: absolute; left: 4px; right: 4px;
+    top: 40%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--teal) 30%, var(--teal) 70%, transparent);
+    opacity: 0.7;
+  }
+  .scan-bottom {
+    height: 80px;
+    background: rgba(14,18,24,0.88);
+    backdrop-filter: blur(12px);
+    border-radius: 12px 12px 0 0;
+    display: flex; align-items: center; justify-content: center;
+    gap: 16px;
+  }
+  .scan-shutter {
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.85);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .scan-shutter-inner {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #fff;
+  }
+  .scan-thumb {
+    width: 18px; height: 24px; border-radius: 3px;
+    border: 1px solid var(--teal);
+    background: rgba(255,255,255,0.04);
+  }
+
+  /* 5. Analysis */
+  .s-analysis {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 100% 70% at 50% 40%, rgba(0,180,160,0.05) 0%, transparent 55%),
+      linear-gradient(172deg, var(--navy-deep) 0%, var(--navy) 45%, #12376E 100%);
+    display: flex; flex-direction: column;
+    align-items: center;
+    padding: 40px 16px 0;
+  }
+  .ana-icon {
+    width: 24px; height: 24px; margin-bottom: 12px;
+    opacity: 0.8;
+  }
+  .ana-title {
+    font: 600 13px/1.2 'Bricolage Grotesque', system-ui, sans-serif;
+    color: #fff; margin-bottom: 3px;
+  }
+  .ana-sub {
+    font: 400 8px/1.3 -apple-system, system-ui, sans-serif;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 18px;
+  }
+  .ana-steps {
+    width: 70%;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .ana-step {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .ana-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .ana-dot.done { background: var(--teal); }
+  .ana-dot.active {
+    background: transparent;
+    border: 1px solid var(--teal);
+    box-shadow: 0 0 0 2px rgba(0,180,160,0.15);
+  }
+  .ana-dot.pending { background: rgba(255,255,255,0.08); }
+  .ana-step-text {
+    font: 400 8px/1.3 -apple-system, system-ui, sans-serif;
+  }
+  .ana-step.done .ana-step-text { color: rgba(255,255,255,0.7); }
+  .ana-step.active .ana-step-text { color: #fff; }
+  .ana-step.pending .ana-step-text { color: rgba(255,255,255,0.2); }
+  .ana-progress {
+    position: absolute; bottom: 28px; left: 20px; right: 20px;
+  }
+  .ana-track {
+    height: 2px; background: rgba(255,255,255,0.06);
+    border-radius: 1px; overflow: hidden;
+  }
+  .ana-fill {
+    height: 100%; width: 62%;
+    background: linear-gradient(90deg, var(--teal), var(--teal-light));
+    border-radius: 1px;
+  }
+  .ana-pct {
+    font: 400 8px/1 -apple-system, system-ui, sans-serif;
+    color: rgba(255,255,255,0.4);
+    text-align: right; margin-top: 3px;
+  }
+
+  /* 6. Findings */
+  .s-findings {
+    position: absolute; inset: 0;
+    background: #F5F6F8;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .find-header {
+    background:
+      radial-gradient(ellipse 90% 60% at 80% 90%, rgba(0,180,160,0.08) 0%, transparent 55%),
+      linear-gradient(172deg, var(--navy-deep) 0%, var(--navy) 50%, #12376E 100%);
+    padding: 26px 10px 14px;
+    border-radius: 0 0 10px 10px;
+  }
+  .find-nav {
+    display: flex; align-items: center; gap: 6px; margin-bottom: 8px;
+  }
+  .find-back {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+  }
+  .find-nav-text {
+    font: 500 8px/1 -apple-system, system-ui, sans-serif;
+    color: #fff;
+  }
+  .find-hosp {
+    font: 600 12px/1.2 'Bricolage Grotesque', system-ui, sans-serif;
+    color: #fff; margin-bottom: 2px;
+  }
+  .find-meta {
+    font: 400 7px/1.3 -apple-system, system-ui, sans-serif;
+    color: rgba(255,255,255,0.4); margin-bottom: 8px;
+  }
+  .find-stats {
+    display: flex; gap: 4px;
+  }
+  .find-stat {
+    flex: 1; background: rgba(255,255,255,0.06);
+    border-radius: 5px; padding: 5px 4px;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .find-stat-val {
+    font: 600 10px/1.2 'Bricolage Grotesque', system-ui, sans-serif;
+  }
+  .find-stat-val.teal { color: var(--teal-light); }
+  .find-stat-val.white { color: #fff; }
+  .find-stat-lbl {
+    font: 400 6px/1.2 -apple-system, system-ui, sans-serif;
+    color: rgba(255,255,255,0.35);
+  }
+  .find-body { flex: 1; padding: 6px 8px; overflow: hidden; }
+  .find-rec {
+    background: #fff; border-radius: 6px; padding: 6px;
+    border-left: 2px solid var(--gold);
+    margin-bottom: 6px;
+  }
+  .find-rec-tag {
+    font: 500 6px/1 -apple-system, system-ui, sans-serif;
+    color: var(--gold); margin-bottom: 3px;
+  }
+  .find-rec-title {
+    font: 500 8px/1.3 -apple-system, system-ui, sans-serif;
+    color: #111827; margin-bottom: 4px;
+  }
+  .find-rec-btn {
+    width: 60%; height: 16px; border-radius: 4px;
+    background: var(--teal); border: none;
+    font: 500 7px/1 -apple-system, system-ui, sans-serif;
+    color: #fff;
+  }
+  .find-list {
+    background: #fff; border-radius: 6px; overflow: hidden;
+  }
+  .find-item {
+    padding: 5px 6px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .find-item + .find-item { border-top: 1px solid rgba(0,0,0,0.04); }
+  .find-sev {
+    width: 4px; height: 4px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .find-sev.critical { background: var(--red); }
+  .find-sev.moderate { background: var(--amber); }
+  .find-sev.advisory { background: var(--blue); }
+  .find-item-body { flex: 1; min-width: 0; }
+  .find-item-name {
+    font: 500 8px/1.3 -apple-system, system-ui, sans-serif;
+    color: #111827;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .find-item-sub {
+    font: 400 6px/1.3 -apple-system, system-ui, sans-serif;
+    color: #9CA3AF;
+  }
+  .find-item-amt {
+    font: 600 9px/1 'Bricolage Grotesque', system-ui, sans-serif;
+    color: var(--teal); flex-shrink: 0;
+  }
+
+  /* ─── Screen description ─── */
+  .screen-desc {
+    margin-top: 10px;
+    font: 400 12px/1.5 -apple-system, system-ui, sans-serif;
+    color: var(--text-2);
+  }
+
+  /* ─── Flow connectors between cards ─── */
+  .flow-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: -8px 0;
+    padding: 0 4px;
+  }
+  .flow-line {
+    flex: 1; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--teal) 20%, var(--teal) 80%, transparent);
+    opacity: 0.2;
+    max-width: 100px;
+  }
+  .flow-arrow-down {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 0;
+  }
+
+  /* ─── Footer ─── */
+  .footer {
+    text-align: center;
+    padding: 24px 0 0;
+    border-top: 1px solid var(--border);
+  }
+  .footer p {
+    font: 400 12px/1.5 -apple-system, system-ui, sans-serif;
+    color: var(--text-3);
+  }
+  .footer a {
+    color: var(--teal);
+    text-decoration: none;
+  }
+
+  .color-strip {
+    display: flex; gap: 6px;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+  .color-swatch {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 4px;
+  }
+  .swatch {
+    width: 28px; height: 28px; border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+  .swatch-label {
+    font: 400 9px/1 -apple-system, system-ui, sans-serif;
+    color: var(--text-3);
+  }
+</style>
+
+<div class="page">
+  <header class="page-header">
+    <div class="badge"><span class="badge-dot"></span> Core Flow · 6 Screens</div>
+    <h1>Bill Fixer — Medical Bill Help</h1>
+    <p>Premium iOS app that scans medical bills, cross-references pricing data, and identifies billing errors to help patients save money.</p>
+  </header>
+
+  <!-- Color palette strip -->
+  <div class="color-strip">
+    <div class="color-swatch">
+      <div class="swatch" style="background:#0F2B5B"></div>
+      <span class="swatch-label">Navy</span>
+    </div>
+    <div class="color-swatch">
+      <div class="swatch" style="background:#00B4A0"></div>
+      <span class="swatch-label">Teal</span>
+    </div>
+    <div class="color-swatch">
+      <div class="swatch" style="background:#E8A422"></div>
+      <span class="swatch-label">Gold</span>
+    </div>
+    <div class="color-swatch">
+      <div class="swatch" style="background:#E54D42"></div>
+      <span class="swatch-label">Red</span>
+    </div>
+    <div class="color-swatch">
+      <div class="swatch" style="background:#4E8AE6"></div>
+      <span class="swatch-label">Blue</span>
+    </div>
+    <div class="color-swatch">
+      <div class="swatch" style="background:#F5F6F8"></div>
+      <span class="swatch-label">Surface</span>
+    </div>
+  </div>
+
+  <!-- 6-screen flow grid -->
+  <div class="flow">
+
+    <!-- 1. Splash -->
+    <div class="screen-card">
+      <span class="screen-num">01</span>
+      <div class="screen-label">
+        <h3>Splash</h3>
+        <span class="arrow">→</span>
+      </div>
+      <div class="mini-device">
+        <div class="mini-island"></div>
+        <div class="s-splash">
+          <svg class="logo-icon" viewBox="0 0 56 56" fill="none">
+            <rect x="12" y="8" width="24" height="34" rx="3" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.12)" stroke-width="0.75"/>
+            <path d="M15 42l3-2 3 2 3-2 3 2 3-2 3 2" stroke="rgba(255,255,255,0.1)" stroke-width="0.75" fill="none" stroke-linecap="round"/>
+            <rect x="18" y="14" width="12" height="2" rx="1" fill="rgba(255,255,255,0.18)"/>
+            <rect x="18" y="19" width="8" height="1.5" rx="0.75" fill="rgba(255,255,255,0.1)"/>
+            <rect x="18" y="23" width="10" height="1.5" rx="0.75" fill="rgba(255,255,255,0.1)"/>
+            <circle cx="38" cy="32" r="7" fill="#00B4A0"/>
+            <path d="M34.5 32l2 2 4-4.5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <h2>Bill Fixer</h2>
+          <span class="tag">Medical Bill Help</span>
+          <div class="loader-bar"><div class="loader-fill"></div></div>
+        </div>
+      </div>
+      <p class="screen-desc">Brand identity with receipt logo mark and teal progress indicator.</p>
+    </div>
+
+    <!-- 2. Onboarding -->
+    <div class="screen-card">
+      <span class="screen-num">02</span>
+      <div class="screen-label">
+        <h3>Onboarding</h3>
+        <span class="arrow">→</span>
+      </div>
+      <div class="mini-device">
+        <div class="mini-island"></div>
+        <div class="s-onboarding">
+          <div class="onb-illust">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+              <rect x="10" y="6" width="20" height="28" rx="2.5" fill="none" stroke="#C7CCD1" stroke-width="1.2"/>
+              <path d="M13 34l3-2 3 2 3-2 3 2 3-2 3 2" stroke="#C7CCD1" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+              <rect x="14" y="12" width="10" height="1.5" rx="0.75" fill="#D1D5DB"/>
+              <rect x="14" y="16" width="7" height="1" rx="0.5" fill="#E5E7EB"/>
+              <rect x="14" y="19" width="9" height="1" rx="0.5" fill="#E5E7EB"/>
+              <circle cx="36" cy="18" r="6" fill="none" stroke="#00B4A0" stroke-width="1.2"/>
+              <path d="M34 18h4M36 16v4" stroke="#00B4A0" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <p class="onb-title">Scan any bill</p>
+          <p class="onb-desc">Take a photo or upload a PDF. We'll extract every line item.</p>
+          <div class="onb-dots">
+            <div class="onb-dot active"></div>
+            <div class="onb-dot"></div>
+            <div class="onb-dot"></div>
+          </div>
+          <button class="onb-btn">Continue</button>
+        </div>
+      </div>
+      <p class="screen-desc">3-page carousel with thin-stroke illustrations and swipe navigation.</p>
+    </div>
+
+    <!-- 3. Home Dashboard -->
+    <div class="screen-card">
+      <span class="screen-num">03</span>
+      <div class="screen-label">
+        <h3>Home</h3>
+        <span class="arrow">→</span>
+      </div>
+      <div class="mini-device">
+        <div class="mini-island"></div>
+        <div class="s-home">
+          <div class="home-header">
+            <p class="home-greeting">Good morning</p>
+            <p class="home-name">Parth</p>
+            <div class="home-savings-row">
+              <div class="home-stat">
+                <p class="home-stat-val">$2,489</p>
+                <p class="home-stat-lbl">Saved</p>
+              </div>
+              <div class="home-stat">
+                <p class="home-stat-val" style="color:#fff">3</p>
+                <p class="home-stat-lbl">Bills</p>
+              </div>
+            </div>
+          </div>
+          <div class="home-body">
+            <div class="home-card">
+              <p class="home-card-title">Memorial Hospital</p>
+              <p class="home-card-sub">Emergency · Jun 15 · $1,320 found</p>
+            </div>
+            <div class="home-card">
+              <p class="home-card-title">City Medical Lab</p>
+              <p class="home-card-sub">Blood work · May 22 · $487 found</p>
+            </div>
+            <div class="home-card">
+              <p class="home-card-title">Riverside Imaging</p>
+              <p class="home-card-sub">MRI scan · Apr 10 · $640 found</p>
+            </div>
+          </div>
+          <div class="home-tab-bar">
+            <div class="tab-dot active"></div>
+            <div class="tab-dot"></div>
+            <div class="tab-dot"></div>
+            <div class="tab-dot"></div>
+          </div>
+        </div>
+      </div>
+      <p class="screen-desc">Savings summary, bill history as grouped list, and tab navigation.</p>
+    </div>
+
+    <!-- 4. Scan -->
+    <div class="screen-card">
+      <span class="screen-num">04</span>
+      <div class="screen-label">
+        <h3>Scan</h3>
+        <span class="arrow">→</span>
+      </div>
+      <div class="mini-device">
+        <div class="mini-island"></div>
+        <div class="s-scan">
+          <div class="scan-top">
+            <div class="scan-icon"></div>
+            <span class="scan-title-text">Scan Bill</span>
+            <div class="scan-icon"></div>
+          </div>
+          <div class="scan-viewfinder">
+            <div class="scan-corner tl"></div>
+            <div class="scan-corner tr"></div>
+            <div class="scan-corner bl"></div>
+            <div class="scan-corner br"></div>
+            <div class="scan-line-anim"></div>
+          </div>
+          <div class="scan-bottom">
+            <div class="scan-thumb"></div>
+            <div class="scan-shutter"><div class="scan-shutter-inner"></div></div>
+            <span style="font:500 8px/1 -apple-system,system-ui,sans-serif;color:var(--teal)">Done</span>
+          </div>
+        </div>
+      </div>
+      <p class="screen-desc">Camera viewfinder with corner brackets, sweep line, and glass panel.</p>
+    </div>
+
+    <!-- 5. Analysis -->
+    <div class="screen-card">
+      <span class="screen-num">05</span>
+      <div class="screen-label">
+        <h3>Analysis</h3>
+        <span class="arrow">→</span>
+      </div>
+      <div class="mini-device">
+        <div class="mini-island"></div>
+        <div class="s-analysis">
+          <svg class="ana-icon" viewBox="0 0 24 24" fill="none">
+            <rect x="4" y="3" width="12" height="16" rx="1.5" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+            <rect x="7" y="6" width="6" height="1" rx="0.5" fill="rgba(255,255,255,0.15)"/>
+            <rect x="7" y="9" width="4" height="0.75" rx="0.375" fill="rgba(255,255,255,0.08)"/>
+            <circle cx="18" cy="15" r="4" fill="#00B4A0"/>
+            <path d="M16.5 15l1 1 2.5-2.5" stroke="#fff" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <p class="ana-title">Analyzing your bill</p>
+          <p class="ana-sub">This usually takes about 30 seconds</p>
+          <div class="ana-steps">
+            <div class="ana-step done">
+              <div class="ana-dot done"></div>
+              <span class="ana-step-text">Reading documents</span>
+            </div>
+            <div class="ana-step done">
+              <div class="ana-dot done"></div>
+              <span class="ana-step-text">Itemizing charges</span>
+            </div>
+            <div class="ana-step active">
+              <div class="ana-dot active"></div>
+              <span class="ana-step-text">Cross-referencing prices</span>
+            </div>
+            <div class="ana-step pending">
+              <div class="ana-dot pending"></div>
+              <span class="ana-step-text">Comparing with EOB</span>
+            </div>
+            <div class="ana-step pending">
+              <div class="ana-dot pending"></div>
+              <span class="ana-step-text">Generating findings</span>
+            </div>
+          </div>
+          <div class="ana-progress">
+            <div class="ana-track"><div class="ana-fill"></div></div>
+            <p class="ana-pct">62%</p>
+          </div>
+        </div>
+      </div>
+      <p class="screen-desc">Step checklist with breathing icon and live progress counter.</p>
+    </div>
+
+    <!-- 6. Findings -->
+    <div class="screen-card">
+      <span class="screen-num">06</span>
+      <div class="screen-label">
+        <h3>Findings</h3>
+      </div>
+      <div class="mini-device">
+        <div class="mini-island"></div>
+        <div class="s-findings">
+          <div class="find-header">
+            <div class="find-nav">
+              <div class="find-back"></div>
+              <span class="find-nav-text">Analysis Complete</span>
+            </div>
+            <p class="find-hosp">Memorial Hospital</p>
+            <p class="find-meta">Emergency Visit · Jun 15, 2024</p>
+            <div class="find-stats">
+              <div class="find-stat">
+                <p class="find-stat-val teal">$2,489</p>
+                <p class="find-stat-lbl">Savings</p>
+              </div>
+              <div class="find-stat">
+                <p class="find-stat-val white">4</p>
+                <p class="find-stat-lbl">Findings</p>
+              </div>
+              <div class="find-stat">
+                <p class="find-stat-val white">2</p>
+                <p class="find-stat-lbl">Strong</p>
+              </div>
+            </div>
+          </div>
+          <div class="find-body">
+            <div class="find-rec">
+              <p class="find-rec-tag">Recommended</p>
+              <p class="find-rec-title">Request an itemized statement</p>
+              <button class="find-rec-btn">Generate Letter</button>
+            </div>
+            <div class="find-list">
+              <div class="find-item">
+                <div class="find-sev critical"></div>
+                <div class="find-item-body">
+                  <p class="find-item-name">EOB Mismatch</p>
+                  <p class="find-item-sub">Billed exceeds allowed</p>
+                </div>
+                <span class="find-item-amt">$1,320</span>
+              </div>
+              <div class="find-item">
+                <div class="find-sev critical"></div>
+                <div class="find-item-body">
+                  <p class="find-item-name">Duplicate Charge</p>
+                  <p class="find-item-sub">CPT 99285 appears twice</p>
+                </div>
+                <span class="find-item-amt">$487</span>
+              </div>
+              <div class="find-item">
+                <div class="find-sev moderate"></div>
+                <div class="find-item-body">
+                  <p class="find-item-name">Above Fair Price</p>
+                  <p class="find-item-sub">MRI above median</p>
+                </div>
+                <span class="find-item-amt">$640</span>
+              </div>
+              <div class="find-item">
+                <div class="find-sev advisory"></div>
+                <div class="find-item-body">
+                  <p class="find-item-name">Math Error</p>
+                  <p class="find-item-sub">Subtotal doesn't add up</p>
+                </div>
+                <span class="find-item-amt">$42</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="screen-desc">Navy header with stats, recommendation card, and grouped findings list.</p>
+    </div>
+
+  </div>
+
+  <footer class="footer">
+    <p>Bill Fixer — Medical Bill Help · Design System v1.0</p>
+  </footer>
+</div>

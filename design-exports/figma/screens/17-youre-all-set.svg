@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844" fill="none">
+<defs>
+<linearGradient id="gradNavy" x1="0" y1="0" x2="1" y2="1">
+  <stop offset="0" stop-color="#123A7A"/><stop offset="1" stop-color="#0B2B5C"/></linearGradient>
+<linearGradient id="gradBlue" x1="0" y1="0" x2="1" y2="1">
+  <stop offset="0" stop-color="#5B9BFF"/><stop offset="1" stop-color="#2E7DF6"/></linearGradient>
+<linearGradient id="gradTeal" x1="0" y1="0" x2="1" y2="1">
+  <stop offset="0" stop-color="#22D3BB"/><stop offset="1" stop-color="#00BFA5"/></linearGradient>
+<linearGradient id="gradAmber" x1="0" y1="0" x2="1" y2="1">
+  <stop offset="0" stop-color="#FFC554"/><stop offset="1" stop-color="#F5A623"/></linearGradient>
+<linearGradient id="gradGreen" x1="0" y1="0" x2="1" y2="1">
+  <stop offset="0" stop-color="#3BDC93"/><stop offset="1" stop-color="#22C07A"/></linearGradient>
+<linearGradient id="gradSplash" x1="0" y1="0" x2="0.7" y2="1">
+  <stop offset="0" stop-color="#0B2B5C"/><stop offset="0.36" stop-color="#123A7A"/>
+  <stop offset="0.72" stop-color="#1B62C4"/><stop offset="1" stop-color="#2E7DF6"/></linearGradient>
+<linearGradient id="gradDark" x1="0" y1="0" x2="0.6" y2="1">
+  <stop offset="0" stop-color="#0A0D14"/><stop offset="0.5" stop-color="#12161F"/>
+  <stop offset="1" stop-color="#1A1A28"/></linearGradient>
+<linearGradient id="gradSky" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0" stop-color="#DCEEFF"/><stop offset="0.34" stop-color="#EBF5FF"/>
+  <stop offset="1" stop-color="#FFFFFF"/></linearGradient>
+<linearGradient id="gradDonut" x1="0" y1="0" x2="1" y2="1">
+  <stop offset="0" stop-color="#EF4444"/><stop offset="0.42" stop-color="#F5A623"/>
+  <stop offset="0.72" stop-color="#2E7DF6"/><stop offset="1" stop-color="#00BFA5"/></linearGradient>
+<filter id="shCard" x="-30%" y="-30%" width="160%" height="180%">
+  <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#102346" flood-opacity="0.06"/>
+  <feDropShadow dx="0" dy="10" stdDeviation="15" flood-color="#102346" flood-opacity="0.05"/></filter>
+<filter id="shFloat" x="-30%" y="-30%" width="160%" height="180%">
+  <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#102346" flood-opacity="0.10"/>
+  <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#102346" flood-opacity="0.08"/></filter>
+<filter id="shBtnNavy" x="-30%" y="-30%" width="160%" height="200%">
+  <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#0B2B5C" flood-opacity="0.30"/></filter>
+<filter id="shBtnBlue" x="-30%" y="-30%" width="160%" height="200%">
+  <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#2E7DF6" flood-opacity="0.32"/></filter>
+<filter id="shBtnAmber" x="-30%" y="-30%" width="160%" height="200%">
+  <feDropShadow dx="0" dy="5" stdDeviation="8" flood-color="#F5A623" flood-opacity="0.40"/></filter>
+<filter id="shGold" x="-40%" y="-40%" width="180%" height="200%">
+  <feDropShadow dx="0" dy="0" stdDeviation="10" flood-color="#F5A623" flood-opacity="0.35"/></filter>
+</defs>
+<g id="Youre All Set">
+<rect id="Background" width="390" height="844" fill="#FFFFFF"/>
+<g id="Screen 17 You&#x27;re All Set"><g id="Status bar"><text id="Time" x="29" y="44" font-family="Plus Jakarta Sans" font-size="15" font-weight="700" fill="#14213D" text-anchor="start">9:41</text><rect id="Signal bar 1" x="300" y="40" width="3" height="4" rx="0.7" fill="#14213D"/><rect id="Signal bar 2" x="304.5" y="38" width="3" height="6" rx="0.7" fill="#14213D"/><rect id="Signal bar 3" x="309" y="35.5" width="3" height="8.5" rx="0.7" fill="#14213D"/><rect id="Signal bar 4" x="313.5" y="33" width="3" height="11" rx="0.7" fill="#14213D"/><rect id="Battery shell" x="322" y="33" width="20" height="11" rx="3" fill="none" stroke="#14213D" stroke-width="1"/><rect id="Battery fill" x="324" y="35" width="15" height="7" rx="1.8" fill="#14213D"/><rect id="Battery nub" x="343.5" y="36" width="2" height="5" rx="1" fill="#14213D" fill-opacity="0.45"/></g><g id="Home indicator"><rect id="bar" x="126" y="831" width="138" height="5" rx="3" fill="#14213D" fill-opacity="0.3"/></g><ellipse id="Bokeh green" cx="195" cy="236" rx="150" ry="150" fill="#E6F9EF" fill-opacity="0.7"/><ellipse id="Halo outer" cx="195" cy="236" rx="96" ry="96" fill="#22C07A" fill-opacity="0.1"/><ellipse id="Halo inner" cx="195" cy="236" rx="76" ry="76" fill="#22C07A" fill-opacity="0.16"/><ellipse id="Check disc" cx="195" cy="236" rx="58" ry="58" fill="url(#gradGreen)"/><path id="Check mark" d="M170 237 L187 254 L221 218" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><text id="Title" x="195" y="356" font-family="Plus Jakarta Sans" font-size="30" font-weight="800" fill="#14213D" text-anchor="middle" letter-spacing="-1.2">You&#x27;re All Set!</text><text id="Subtitle" x="195" y="386" font-family="DM Sans" font-size="15" font-weight="400" fill="#4A5A75" text-anchor="middle">Welcome to BillFixer Premium</text><rect id="Row 1" x="24" y="440" width="342" height="44" rx="14" fill="#E6F9EF"/><ellipse id="Row 1 disc" cx="48" cy="462" rx="10" ry="10" fill="#22C07A"/><path id="Row 1 check" d="M43.5 462 L46.8 465.3 L52.5 458.5" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><text id="Row 1 label" x="72" y="467" font-family="Plus Jakarta Sans" font-size="13.5" font-weight="600" fill="#146245" text-anchor="start">Your subscription is active</text><rect id="Row 2" x="24" y="492" width="342" height="44" rx="14" fill="#E6F9EF"/><ellipse id="Row 2 disc" cx="48" cy="514" rx="10" ry="10" fill="#22C07A"/><path id="Row 2 check" d="M43.5 514 L46.8 517.3 L52.5 510.5" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><text id="Row 2 label" x="72" y="519" font-family="Plus Jakarta Sans" font-size="13.5" font-weight="600" fill="#146245" text-anchor="start">All features unlocked</text><rect id="Row 3" x="24" y="544" width="342" height="44" rx="14" fill="#E6F9EF"/><ellipse id="Row 3 disc" cx="48" cy="566" rx="10" ry="10" fill="#22C07A"/><path id="Row 3 check" d="M43.5 566 L46.8 569.3 L52.5 562.5" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><text id="Row 3 label" x="72" y="571" font-family="Plus Jakarta Sans" font-size="13.5" font-weight="600" fill="#146245" text-anchor="start">Start scanning your first bill</text><g id="Button Start Scanning"><rect id="Button Start Scanning bg" x="24" y="636" width="342" height="56" rx="18" fill="url(#gradNavy)" filter="url(#shBtnNavy)"/><g id="Button Start Scanning icon" transform="translate(109.98,654.0) scale(0.8333)"><path d="M23 19 C23 20.1 22.1 21 21 21 L3 21 C1.9 21 1 20.1 1 19 L1 8 C1 6.9 1.9 6 3 6 L7 6 L9 3 L15 3 L17 6 L21 6 C22.1 6 23 6.9 23 8 Z M16 13 C16 15.2 14.2 17 12 17 C9.8 17 8 15.2 8 13 C8 10.8 9.8 9 12 9 C14.2 9 16 10.8 16 13 Z" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g><text id="Button Start Scanning label" x="207.0" y="670.0" font-family="Plus Jakarta Sans" font-size="17" font-weight="700" fill="#FFFFFF" text-anchor="middle">Start Scanning</text></g><text id="Manage note" x="195" y="724" font-family="DM Sans" font-size="12" font-weight="400" fill="#8492AB" text-anchor="middle">Manage your subscription in Settings</text></g>
+</g>
+</svg>

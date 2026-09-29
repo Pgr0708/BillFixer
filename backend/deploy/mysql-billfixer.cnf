@@ -1,0 +1,16 @@
+# /etc/mysql/mysql.conf.d/billfixer.cnf — tuned for a 4–8 GB VPS. Adjust buffer pool to ~40% of RAM.
+[mysqld]
+character-set-server      = utf8mb4
+collation-server          = utf8mb4_0900_ai_ci
+default-time-zone         = '+00:00'
+event_scheduler           = ON
+bind-address              = 127.0.0.1
+max_connections           = 300
+innodb_buffer_pool_size   = 1G
+innodb_log_file_size      = 256M
+innodb_flush_log_at_trx_commit = 1
+innodb_file_per_table     = 1
+slow_query_log            = 1
+slow_query_log_file       = /var/log/mysql/slow.log
+long_query_time           = 1
+sql_mode                  = STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION

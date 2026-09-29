@@ -1,0 +1,16 @@
+[Unit]
+Description=BillFixer official data pipeline (FPL, CMS hospitals, Medicare fee schedule, hospital prices)
+After=network-online.target mysql.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=@USER@
+WorkingDirectory=@DIR@
+ExecStart=@DIR@/.venv/bin/python -m pipeline.run --source all
+Nice=10
+IOSchedulingClass=idle
+TimeoutStartSec=6h
+MemoryMax=1500M
+StandardOutput=journal
+StandardError=journal

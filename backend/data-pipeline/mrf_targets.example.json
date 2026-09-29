@@ -1,0 +1,4 @@
+[
+  { "cmsFacilityId": "010001", "website": "https://www.example-hospital.org" },
+  { "cmsFacilityId": "050454", "mrfUrl": "https://www.example-health.org/pricing/123456789_example-hospital_standardcharges.json" }
+]

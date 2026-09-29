@@ -1,0 +1,13 @@
+node_modules/
+.env
+.env.*
+!.env.example
+logs/*
+!logs/.gitkeep
+*.log
+coverage/
+.DS_Store
+data-pipeline/.venv/
+data-pipeline/__pycache__/
+data-pipeline/**/__pycache__/
+data-pipeline/downloads/

@@ -757,3 +757,215 @@ checkmark.circle.fill          — Resolved
 xmark.circle                   — Denied/closed
 clock.badge.exclamationmark    — Urgent deadline
 ```
+
+---
+---
+
+# PART II — V2 SCENIC SYSTEM
+
+> Added Sep 28, 2026. Everything above still holds — tokens, semantic colors, spacing,
+> haptics, components. This part adds the three layers that were missing:
+> **a per-screen background registry, a per-screen typographic persona, and a vector asset library.**
+>
+> Reference implementation: `docs/Claude outputs/v2/BillFixer-Screens.html` (24 screens, all inline SVG).
+
+---
+
+## The Scenic Rule
+
+Every screen gets **its own full-bleed background**. No wallpaper is ever reused.
+
+This is not decoration. A background is a **wayfinding signal**: the user should know
+which part of the app they're in before they read a single word. Capture is dark and
+technical. Documents are paper. Analysis is deep space. Money is warm. Rights are engraved.
+
+**Constraints that make it safe:**
+
+| Rule | Value |
+|---|---|
+| Format | Inline SVG only — no raster, no external image requests |
+| Size budget | ≤ 8 KB of markup per background |
+| Text contrast | Content sits on a surface (card / glass / scrim), never raw on the scene |
+| Legibility gate | Every background must pass 4.5:1 for all text layered over it |
+| Motion | ≤ 3 animated elements per background, all `transform`/`opacity` only |
+| Reduced motion | `@media (prefers-reduced-motion: reduce)` kills all background animation |
+| Dark mode | Light scenes get a dark counterpart; dark scenes deepen, never invert |
+
+**Anatomy — every background is exactly three layers:**
+
+```
+┌─ Layer 3: ACCENT     drifting blobs, particles, confetti, glints   (animated)
+├─ Layer 2: STRUCTURE  contours, grid, waves, rays, skyline, strata  (static/slow)
+└─ Layer 1: FIELD      the base CSS gradient on the container         (static)
+```
+
+---
+
+## Background Registry
+
+24 scenes. Each row is a contract: the screen, the scene name, its base gradient,
+its structure motif, and its animation signature.
+
+| # | Screen | Scene | Field (base gradient) | Structure | Motion |
+|---|---|---|---|---|---|
+| 01 | Splash | **Aurora Orbit** | `#081A38 → #0F2B5B → #144A76 → #00806F` 158° | Two counter-rotating orbit ellipses + starfield | `spin 26s` / `spin-r 34s` / `twinkle` |
+| 02 | Onboarding 1 | **Topographic Mint** | `#EAFBF7 → #F4FBFA → #FFFDF7` 172° | Contour lines (teal upper, navy lower) | `drift 17s` / `pulse` |
+| 03 | Onboarding 2 | **Gold Constellation** | `#FFFBF0 → #FEF6E4 → #F6F9FF` 196° | Node-and-edge constellation, two clusters | `pulse` staggered / `spin` dashed ring |
+| 04 | Onboarding 3 | **Ray Burst Lilac** | `#F3F0FF → #EDF6FB → #E9FBF6` 200° | Radial rays from top + dual wave bands | `spin 26s` / `drift` |
+| 05 | Sign In | **Dusk Skyline** | `#0B1B3A → #2B3D77 → #6B5490` 178° | Hospital skyline silhouette + lit windows | `twinkle` / `breathe` moon |
+| 06 | Home | **Daylight Mesh** | `#0F2B5B → #1E6E86 → #EAF3F8 → #F5F6FA` 184° | Mesh radials + 26px grid below fold + wave cap | `breathe` / `drift` ×2 |
+| 07 | Capture Sheet | **Scrim Bokeh** | `#0C1F42 → #1B5E70 → #243046` 170° | Gaussian-blurred shapes of the screen beneath | `drift 17s` ×2 |
+| 08 | Camera | **Viewfinder Grain** | radial `#2A3040 → #05070B` | Turbulence grain + document + edge vignette | `sweep 3.2s` scan line / `bracket pulse` |
+| 09 | Doc Review | **Ivory Paper Stock** | `#FBF8F1 → #F6F2E8 → #F2F4F6` 168° | Fibre turbulence + 32px ruling + red margin | `drift` ink bloom |
+| 10 | OCR Edit | **Blueprint Grid** | `#EFF4FB → #F3F6FB → #FAFBFD` 176° | 20px minor / 100px major grid + dimension ticks | `drift` ×2 |
+| 11 | Analysis | **Deep Orbit Navy** | `#050D1F → #123063 → #0E3C54` 168° | Orbit ring + ellipse + wave floor | `rise 7–10s` particles / `spin` |
+| 12 | Results | **Radiant Burst** | `#F0FDFA → #F7F8FC → #FFFDF6` 178° | Radial rays from donut centre + confetti | `spin` / `float-s` confetti |
+| 13 | Findings | **Severity Strata** | navy → crimson → amber → blue bands 180° | Horizontal strata keyed to severity tiers | `drift` ×2 |
+| 14 | Finding Detail | **Crimson Dawn Hatch** | `#FFF1F1 → #FAF7F5 → #F6F7FA` 174° | 45° caution hatch + concentric alert rings | `pulse` rings / `drift` |
+| 15 | Letter | **Linen & Seal** | `#F7F4EC → #F2EEE3 → #EEF1F4` 170° | Linen weave + embossed seal watermark | `spin 26s` seal |
+| 16 | Phone Script | **Waveform Indigo** | `#141335 → #232B6B → #0E2436` 172° | 19-bar audio waveform, split left/right | `pulse` staggered 50ms |
+| 17 | Cases | **Isometric Slate** | `#EEF2F8 → #F8F9FC → #EFF4F6` 182° | Isometric folder cubes + horizon rules | `drift` |
+| 18 | Timeline | **Spine Glow** | navy → `#F6F8FC → #F2F7F6` 180° | Vertical glow behind the rail + column guides | `drift` ×2 |
+| 19 | Rights | **Guilloché Engraving** | `#07322F → #0F3F62 → #F7FAFA` 176° | Six rotated ellipses (banknote engraving) | `spin 26s` |
+| 20 | Assistance | **Sunrise Ladder** | `#FFF3E4 → #FDF3EC → #F4F8F8` 176° | Ascending step bars + sun + wave bands | `breathe` sun / `pulse` |
+| 21 | Paywall | **Obsidian Gold Dust** | `#0A0D14 → #231B1A → #16141C` 168° | Gold orbit ring + rising dust + star field | `rise 9–13s` / `spin` / `shimmer 2.6s` |
+| 22 | Settings | **Graphite Rings** | `#E8ECF3 → #F6F7FA → #EDF1F4` 180° | Two concentric ring systems + section rules | `drift` |
+| 23 | Empty State | **Cloud Drift Sky** | `#DCEEFB → #F4FAFB → #FBFCFD` 184° | Layered cloud puff clusters, 2 depths | `drift 17s` ×5 |
+| 24 | Success | **Emerald Aurora** | `#04291C → #0E6B52 → #0B5F63` 166° | Dashed orbit + halo rings + wave floor | `breathe` / `float-s` confetti / `spin` |
+
+---
+
+## Typographic Personas
+
+The app ships **14 families**. That is deliberate — each screen has a *voice*, and the
+typeface is how the voice is heard. What keeps it coherent: one shared type scale, one
+shared spacing grid, and `Inter`/`DM Sans` carrying body copy almost everywhere.
+
+```swift
+// Token names map 1:1 to the CSS custom properties in the reference HTML
+BFFont.Family.brand  = "Bricolage Grotesque"   // --f-brand
+BFFont.Family.dash   = "Sora"                  // --f-dash
+BFFont.Family.onb    = "Outfit"                // --f-onb
+BFFont.Family.case_  = "Manrope"               // --f-case
+BFFont.Family.tech   = "Space Grotesk"         // --f-tech
+BFFont.Family.act    = "Archivo"               // --f-act
+BFFont.Family.lux    = "Fraunces"              // --f-lux
+BFFont.Family.warm   = "Calistoga"             // --f-warm
+BFFont.Family.edit   = "Playfair Display"      // --f-edit
+BFFont.Family.doc    = "Libre Baskerville"     // --f-doc
+BFFont.Family.read   = "Source Serif 4"        // --f-read
+BFFont.Family.legal  = "Newsreader"            // --f-legal
+BFFont.Family.ui     = "Inter"                 // --f-ui    (body default)
+BFFont.Family.mono   = "JetBrains Mono"        // --f-mono  (all numerics)
+```
+
+| Screen | Display face | Body face | Why this voice |
+|---|---|---|---|
+| Splash, Sign In, Analysis | Bricolage Grotesque | Inter | The brand itself — confident, a little idiosyncratic |
+| Onboarding 1 | Outfit | DM Sans | Open, geometric, unintimidating on first contact |
+| Onboarding 2 | Fraunces | DM Sans | Editorial authority — this is the "we cite sources" page |
+| Onboarding 3, Home, Results | Sora | Inter | Product voice: precise, modern, data-forward |
+| Capture, Cases, Timeline, Settings, Empty | Manrope | Inter | Workhorse UI — dense lists stay readable |
+| Camera, OCR Edit | Space Grotesk | Inter | Technical register; pairs with mono numerics |
+| Doc Review | Source Serif 4 | Inter | You are looking at a document, so it reads like one |
+| Findings, Finding Detail, Script | Archivo | Inter | Assertive without shouting — this is the verdict |
+| Letter | Libre Baskerville | Playfair (signature) | It must *look* like correspondence, because it is |
+| Rights | Newsreader | Inter | Legal-adjacent gravity without courtroom coldness |
+| Assistance, Empty, Success | Calistoga | Inter | Warmth exactly where the user is most vulnerable |
+| Paywall | Fraunces | Inter | Premium, editorial, worth paying for |
+
+**Non-negotiables regardless of persona:**
+
+- All money, codes, dates, counts, IDs → `JetBrains Mono` with `font-variant-numeric: tabular-nums`.
+- Body copy never below 15pt; line-height 1.55–1.65.
+- Every custom face ships a `.scaledFont()` wrapper for Dynamic Type.
+- Max **two** families visible on any one screen (mono doesn't count).
+
+---
+
+## Vector Asset Library
+
+All artwork is **inline SVG**. No PNGs, no external requests, no asset catalog images
+except the App Icon. Illustrations theme automatically, scale infinitely, and animate.
+
+### Illustration set
+
+| Asset | Used on | Composition |
+|---|---|---|
+| **Logo mark** | 01, 05, 11 | Rounded-square glass tile → document → folded corner → teal check disc with `draw` animation |
+| **Bill + magnifier** | 02 | Stacked documents, teal/amber highlight rows, floating lens with inner check |
+| **Evidence wiring** | 03 | Source doc with three dashed bezier paths → EOB / MRF / MATH source tiles |
+| **Action trio** | 04 | Envelope → phone → check → savings counter card, dashed connectors |
+| **Skyline** | 05 | 7 building silhouettes, one hospital with cross sign, lit window grid |
+| **Folder + sparkle** | 23 | Isometric folder, tilted document, two 4-point sparkles |
+| **Helping hand** | 20 | Hand + heart form, sun disc, green approval tick |
+| **Shield + check** | 19, 24 | Heraldic shield, drawn checkmark, expanding halo rings |
+
+### Finding-type icons (28×28 stroke, 1.9pt)
+
+| Finding | Icon |
+|---|---|
+| Duplicate charge | Two offset document rects, second filled `criticalSurface` |
+| EOB mismatch | Balance scale, pans at unequal heights |
+| Price discrepancy | Price tag with question mark |
+| Math error | Calculator grid with an × in the display |
+| Financial assistance | Hand cradling a heart |
+| Rights / NSA | Shield with inner checkmark |
+| GFE dispute | Stopwatch overlapping a document |
+| Informational | Circle with `i`, `info` blue |
+
+### Micro-vectors
+
+Status bar (signal bars + battery, one 46×11 SVG), capture brackets, progress donut
+(`stroke-dasharray` 465), tab bar glyphs, timeline node tiles, waveform bars, confetti
+(rects rotated 18–48°, circles r 3–5).
+
+---
+
+## Motion System — V2 additions
+
+Part I's timing curves and micro-animation table still govern interaction. These are the
+**ambient** keyframes that live in the background layer and run continuously.
+
+| Keyframe | Duration | Easing | Purpose |
+|---|---|---|---|
+| `float` | 6s | ease-in-out ∞ | Hero illustrations — 13px vertical |
+| `float-s` | 4.5s | ease-in-out ∞ | Secondary props, confetti — 7px |
+| `drift` | 17s | ease-in-out ∞ | Background blobs — 3-point wander |
+| `spin` / `spin-r` | 26s / 34s | linear ∞ | Orbit rings, seals, guilloché |
+| `pulse` | 3.6s | ease-in-out ∞ | Capture brackets, waveform bars, nodes |
+| `breathe` | 5s | ease-in-out ∞ | Aurora / sun opacity 0.2→0.62 |
+| `rise` | 7–13s | linear ∞ | Particles ascending 190px, fade in/out |
+| `shimmer` | 2.6s | linear ∞ | Premium badge, gold CTA sheen |
+| `sweep` | 3.2s | ease-in-out ∞ | Camera scan line, top → bottom |
+| `dash` (`.draw`) | 0.9–1.5s | ease-out once | Checkmark and connector path draw |
+| `twinkle` | 3.4s | ease-in-out ∞ | Starfields, staggered 0.3–2.1s |
+| `tick` | 2.4s | ease-in-out ∞ | Notification badge scale 1→1.13 |
+| `slidein` (`.stagger`) | 0.55s | `cubic-bezier(.22,1,.36,1)` | Card entrance, +70ms per index |
+
+**Stagger contract:** list and card entrances step 50–70ms per item, capped at 8 items —
+past that the last item feels late rather than choreographed.
+
+**Reduced motion:** a single global rule zeroes every animation and transition. Layout,
+contrast, and information are identical with motion off; nothing is animation-dependent.
+
+---
+
+## Layered Surface Rules
+
+Because scenes are busy, content needs a defined home. Three surface treatments only:
+
+```swift
+// 1. Solid card — light scenes, all dense content
+.card       → surface white, radius 20, sh-card, border rgba(231,235,242,.8)
+
+// 2. Light glass — over hero gradients (Home stats, onboarding chrome)
+.glass      → rgba(255,255,255,.14) + blur(22px) saturate(160%) + white 26% border
+
+// 3. Dark glass — over dark scenes (Sign In, Script, Paywall, Success)
+.glass-d    → rgba(9,16,32,.44) + blur(24px) saturate(150%) + white 12% border
+```
+
+**Never** place body text directly on a background scene. Titles and captions may sit on
+a scene only where the underlying region is a flat gradient with no structure layer, and
+only when measured contrast clears 4.5:1 against the darkest and lightest pixel in that region.

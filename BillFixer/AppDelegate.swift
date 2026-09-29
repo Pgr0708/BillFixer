@@ -1,17 +1,15 @@
 //
 //  AppDelegate.swift
-//  GoViral
-//
-//  Created by Minaxi on 16/08/26.
 //
 
+import OSLog
 import Foundation
 import Firebase
 import FirebaseCore
 import FirebaseMessaging
+import UIKit
 import UserNotifications
 import RevenueCat
-import CoreData
 
 final class AppDelegate: NSObject, UIApplicationDelegate {
     func application(
@@ -19,45 +17,52 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
         FirebaseApp.configure()
-        
-        Purchases.logLevel = .debug
-        Purchases.configure(withAPIKey: revenueCatAPIKey)
-        Purchases.shared.delegate = self
-        
-        application.registerForRemoteNotifications()
+        Analytics.setAnalyticsCollectionEnabled(true)
+        Messaging.messaging().delegate = self
+        UNUserNotificationCenter.current().delegate = self
 
-        Messaging.messaging().token { token, error in
-            if let error {
-                print("Error fetching FCM registration token: \(error)")
-            } else if let token {
-                print("FCM registration token: \(token)")
-            }
+        #if DEBUG
+        Purchases.logLevel = .debug
+        #else
+        Purchases.logLevel = .error
+        #endif
+        if isRevenueCatConfigured {
+            Purchases.configure(withAPIKey: revenueCatAPIKey)
+            Purchases.shared.delegate = self
+        } else {
+            AppLog.purchases.error("RevenueCat key missing — purchases disabled until Consts.revenueCatAPIKey is set")
         }
-        
+
+        application.registerForRemoteNotifications()
+        Haptics.prepare()
         return true
     }
-    
+
     func application(_: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
-        print("Oh no! Failed to register for remote notifications with error \(error)")
+        AppLog.app.error("APNs registration failed: \(error.localizedDescription, privacy: .public)")
     }
 
     func application(_: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-        var readableToken = ""
-        for index in 0 ..< deviceToken.count {
-            readableToken += String(format: "%02.2hhx", deviceToken[index] as CVarArg)
-        }
-        print("Received an APNs device token: \(readableToken)")
+        Messaging.messaging().apnsToken = deviceToken
     }
 }
 
 extension AppDelegate: MessagingDelegate {
-    @objc func messaging(_: Messaging, didReceiveRegistrationToken fcmToken: String?) {
-        print("Firebase token: \(String(describing: fcmToken))")
+    nonisolated func messaging(_: Messaging, didReceiveRegistrationToken fcmToken: String?) {
+        AppLog.app.debug("FCM token refreshed: \(fcmToken != nil, privacy: .public)")
     }
 }
 
-extension AppDelegate : PurchasesDelegate {
-    func purchases(_ purchases: Purchases, receivedUpdated customerInfo: CustomerInfo) {
-        BaseViewModel().checkUserIsPro(customerInfo: customerInfo)
+extension AppDelegate: UNUserNotificationCenterDelegate {
+    /// Show deadline reminders even when the app is open.
+    nonisolated func userNotificationCenter(_: UNUserNotificationCenter, willPresent _: UNNotification) async -> UNNotificationPresentationOptions {
+        [.banner, .sound, .list]
+    }
+}
+
+extension AppDelegate: PurchasesDelegate {
+    nonisolated func purchases(_ purchases: Purchases, receivedUpdated customerInfo: CustomerInfo) {
+        let active = customerInfo.entitlements[AppConfig.entitlementID]?.isActive == true
+        Task { @MainActor in SubscriptionManager.shared.apply(entitlementActive: active) }
     }
 }

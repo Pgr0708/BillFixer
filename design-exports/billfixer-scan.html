@@ -1,0 +1,330 @@
+<title>BillFixer Scan</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap');
+
+  :root {
+    --navy-deep: #081A38;
+    --navy: #0F2B5B;
+    --teal: #00B4A0;
+    --teal-light: #00D4BC;
+    --text-1: #FFFFFF;
+    --text-3: rgba(255,255,255,0.45);
+    --text-4: rgba(255,255,255,0.25);
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; background: #1A1A1C; }
+
+  .device {
+    width: 393px; height: 852px;
+    margin: 20px auto;
+    border-radius: 48px;
+    overflow: hidden;
+    position: relative;
+    box-shadow:
+      0 0 0 10.5px #2C2C2E,
+      0 0 0 11px #48484A,
+      0 0 0 11.5px rgba(255,255,255,0.06),
+      0 24px 80px rgba(0,0,0,0.55);
+  }
+
+  .island {
+    position: absolute;
+    top: 11px; left: 50%; transform: translateX(-50%);
+    width: 126px; height: 37px;
+    background: #000; border-radius: 20px;
+    z-index: 50;
+  }
+
+  /* ─── Camera viewfinder ─── */
+  .viewfinder {
+    position: absolute; inset: 0;
+    background: linear-gradient(175deg, #12161E 0%, #0A0E14 50%, #0E1218 100%);
+  }
+
+  /* ─── Top bar ─── */
+  .topbar {
+    position: absolute; top: 56px; left: 0; right: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px;
+    z-index: 10;
+  }
+  .topbar-btn {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .topbar-title {
+    font: 600 17px/1 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: var(--text-1);
+  }
+
+  .hint {
+    position: absolute; top: 102px; left: 0; right: 0;
+    text-align: center;
+    font: 400 14px/1 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: var(--text-3); z-index: 10;
+  }
+
+  /* ─── Document in viewfinder ─── */
+  .doc-ghost {
+    position: absolute;
+    top: 136px; left: 38px; right: 38px; bottom: 288px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.025);
+    display: flex; flex-direction: column;
+    padding: 24px 20px;
+    gap: 8px;
+  }
+  .doc-line {
+    height: 4px; border-radius: 2px;
+    background: rgba(255,255,255,0.05);
+  }
+  .doc-line.h { height: 6px; width: 45%; background: rgba(255,255,255,0.08); margin-bottom: 6px; }
+  .doc-line.w85 { width: 85%; }
+  .doc-line.w70 { width: 70%; }
+  .doc-line.w55 { width: 55%; }
+  .doc-line.w90 { width: 90%; }
+  .doc-line.w40 { width: 40%; }
+  .doc-line.gap { height: 10px; background: none; }
+
+  /* ─── Corner brackets ─── */
+  .corner {
+    position: absolute; width: 24px; height: 24px; z-index: 5;
+  }
+  .corner-tl { top: 128px; left: 30px; }
+  .corner-tr { top: 128px; right: 30px; transform: scaleX(-1); }
+  .corner-bl { bottom: 280px; left: 30px; transform: scaleY(-1); }
+  .corner-br { bottom: 280px; right: 30px; transform: scale(-1); }
+
+  /* ─── Scan line ─── */
+  .scan-line {
+    position: absolute;
+    left: 42px; right: 42px;
+    height: 1.5px;
+    background: linear-gradient(90deg, transparent, var(--teal) 25%, var(--teal-light) 50%, var(--teal) 75%, transparent);
+    box-shadow: 0 0 10px rgba(0,180,160,0.3);
+    opacity: 0;
+    animation: sweep 3s ease-in-out infinite;
+    z-index: 5;
+  }
+  @keyframes sweep {
+    0% { top: 142px; opacity: 0; }
+    8% { opacity: 1; }
+    48% { top: 540px; opacity: 1; }
+    56% { opacity: 0; }
+    100% { top: 540px; opacity: 0; }
+  }
+
+  /* ─── Glass bottom panel ─── */
+  .bottom {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 250px;
+    background: rgba(14,18,24,0.88);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    border-radius: 24px 24px 0 0;
+    display: flex; flex-direction: column; align-items: center;
+    padding-top: 20px;
+    z-index: 10;
+  }
+
+  /* Thumbnails */
+  .thumbs {
+    display: flex; gap: 6px; margin-bottom: 12px;
+  }
+  .thumb {
+    width: 40px; height: 52px;
+    border-radius: 5px;
+    border: 1.5px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.04);
+    position: relative;
+    overflow: hidden;
+  }
+  .thumb.captured {
+    border-color: var(--teal);
+  }
+  .thumb.captured::after {
+    content: '';
+    position: absolute; bottom: 3px; right: 3px;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--teal);
+  }
+  .thumb.captured::before {
+    content: '';
+    position: absolute; bottom: 5.5px; right: 5px;
+    width: 5px; height: 3px;
+    border-left: 1.5px solid #fff;
+    border-bottom: 1.5px solid #fff;
+    transform: rotate(-45deg);
+    z-index: 1;
+  }
+  .thumb-lines {
+    padding: 5px 4px;
+    display: flex; flex-direction: column; gap: 2.5px;
+  }
+  .thumb-line {
+    height: 1.5px; border-radius: 1px;
+    background: rgba(255,255,255,0.12);
+  }
+  .thumb.active { border-color: var(--text-1); }
+  .thumb.add {
+    border-style: dashed;
+    border-color: rgba(255,255,255,0.15);
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .page-label {
+    font: 400 12px/1 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: var(--text-4);
+    margin-bottom: 20px;
+  }
+
+  /* Capture row */
+  .capture-row {
+    display: flex; align-items: center; justify-content: center; gap: 44px;
+    width: 100%;
+  }
+  .gallery-btn {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .capture-ring {
+    width: 66px; height: 66px; border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.85);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: transform 0.1s ease-out;
+  }
+  .capture-ring:active { transform: scale(0.93); }
+  .capture-fill {
+    width: 54px; height: 54px; border-radius: 50%;
+    background: #fff;
+  }
+  .done-btn {
+    font: 600 16px/1 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: var(--teal);
+    background: none; border: none;
+    padding: 8px 0; cursor: pointer;
+    width: 40px; text-align: center;
+  }
+
+  .home-bar {
+    position: absolute;
+    bottom: 8px; left: 50%; transform: translateX(-50%);
+    width: 134px; height: 5px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.12);
+    z-index: 40;
+  }
+
+  @media (max-width: 440px) {
+    .device {
+      width: 100%; height: 100vh;
+      margin: 0; border-radius: 0;
+      box-shadow: none;
+    }
+  }
+</style>
+
+<div class="device">
+  <div class="island"></div>
+
+  <div class="viewfinder"></div>
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="topbar-btn">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 19l-7-7 7-7"/>
+      </svg>
+    </div>
+    <span class="topbar-title">Scan Bill</span>
+    <div class="topbar-btn">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M13 2L6 14h6l-1 8 7-12h-6l1-8z"/>
+      </svg>
+    </div>
+  </div>
+
+  <p class="hint">Position your bill within the frame</p>
+
+  <!-- Document ghost -->
+  <div class="doc-ghost">
+    <div class="doc-line h"></div>
+    <div class="doc-line w85"></div>
+    <div class="doc-line w90"></div>
+    <div class="doc-line w55"></div>
+    <div class="doc-line gap"></div>
+    <div class="doc-line w85"></div>
+    <div class="doc-line w70"></div>
+    <div class="doc-line w40"></div>
+    <div class="doc-line gap"></div>
+    <div class="doc-line w55"></div>
+    <div class="doc-line w90"></div>
+    <div class="doc-line w70"></div>
+    <div class="doc-line gap"></div>
+    <div class="doc-line w40"></div>
+    <div class="doc-line w85"></div>
+  </div>
+
+  <!-- Corner brackets -->
+  <div class="corner corner-tl">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M2 10V4a2 2 0 012-2h6"/></svg>
+  </div>
+  <div class="corner corner-tr">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M2 10V4a2 2 0 012-2h6"/></svg>
+  </div>
+  <div class="corner corner-bl">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M2 10V4a2 2 0 012-2h6"/></svg>
+  </div>
+  <div class="corner corner-br">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M2 10V4a2 2 0 012-2h6"/></svg>
+  </div>
+
+  <!-- Scan line -->
+  <div class="scan-line"></div>
+
+  <!-- Glass bottom panel -->
+  <div class="bottom">
+    <div class="thumbs">
+      <div class="thumb captured">
+        <div class="thumb-lines">
+          <div class="thumb-line" style="width:75%"></div>
+          <div class="thumb-line" style="width:90%"></div>
+          <div class="thumb-line" style="width:50%"></div>
+          <div class="thumb-line" style="width:80%"></div>
+        </div>
+      </div>
+      <div class="thumb active">
+        <div class="thumb-lines">
+          <div class="thumb-line" style="width:60%"></div>
+          <div class="thumb-line" style="width:85%"></div>
+          <div class="thumb-line" style="width:40%"></div>
+        </div>
+      </div>
+      <div class="thumb add">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-linecap="round">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+      </div>
+    </div>
+    <span class="page-label">Page 2 of 2</span>
+
+    <div class="capture-row">
+      <div class="gallery-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="3"/>
+          <circle cx="9" cy="9" r="2"/>
+          <path d="M21 15l-4-4L5 21"/>
+        </svg>
+      </div>
+      <div class="capture-ring"><div class="capture-fill"></div></div>
+      <button class="done-btn">Done</button>
+    </div>
+  </div>
+
+  <div class="home-bar"></div>
+</div>

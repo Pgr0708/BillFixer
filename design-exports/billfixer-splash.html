@@ -1,0 +1,204 @@
+<title>BillFixer Splash</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap');
+
+  :root {
+    --navy-deep: #081A38;
+    --navy: #0F2B5B;
+    --navy-light: #1A3F82;
+    --teal: #00B4A0;
+    --teal-light: #00D4BC;
+    --text-1: #FFFFFF;
+    --text-3: rgba(255,255,255,0.4);
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; background: #1A1A1C; }
+
+  .device {
+    width: 393px; height: 852px;
+    margin: 20px auto;
+    border-radius: 48px;
+    overflow: hidden;
+    position: relative;
+    box-shadow:
+      0 0 0 10.5px #2C2C2E,
+      0 0 0 11px #48484A,
+      0 0 0 11.5px rgba(255,255,255,0.06),
+      0 24px 80px rgba(0,0,0,0.55);
+  }
+
+  .island {
+    position: absolute;
+    top: 11px; left: 50%; transform: translateX(-50%);
+    width: 126px; height: 37px;
+    background: #000; border-radius: 20px;
+    z-index: 50;
+  }
+
+  .statusbar {
+    position: absolute; top: 0; left: 0; right: 0; height: 54px;
+    display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 0 28px 6px; z-index: 40;
+  }
+  .statusbar-time {
+    font: 600 15px/1 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: var(--text-1); letter-spacing: 0.01em;
+  }
+  .statusbar-icons { display: flex; gap: 5px; align-items: center; }
+
+  /* ─── Full-screen gradient ─── */
+  .splash {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 90% 60% at 50% 55%, rgba(0,180,160,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 80% 50% at 20% 80%, rgba(26,63,130,0.3) 0%, transparent 50%),
+      linear-gradient(172deg, var(--navy-deep) 0%, var(--navy) 45%, #12376E 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Noise texture overlay */
+  .splash::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0.025;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+  }
+
+  /* ─── Logo + text ─── */
+  .logo-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+    animation: fadeUp 0.9s ease-out both;
+  }
+  @keyframes fadeUp {
+    0% { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  .logo-mark {
+    width: 72px; height: 72px;
+    margin-bottom: 28px;
+  }
+
+  .app-name {
+    font: 700 30px/1.15 'Bricolage Grotesque', system-ui, sans-serif;
+    color: var(--text-1);
+    letter-spacing: -0.025em;
+    margin-bottom: 6px;
+    text-align: center;
+  }
+  .app-tagline {
+    font: 400 15px/1.3 -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    color: var(--text-3);
+    text-align: center;
+    letter-spacing: 0.01em;
+  }
+
+  /* ─── Progress line ─── */
+  .loader {
+    position: absolute;
+    bottom: 100px; left: 80px; right: 80px;
+    height: 2px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 1px;
+    overflow: hidden;
+    z-index: 1;
+  }
+  .loader-fill {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, var(--teal), var(--teal-light));
+    border-radius: 1px;
+    animation: load 2.4s ease-in-out forwards;
+  }
+  @keyframes load {
+    0% { width: 0; }
+    20% { width: 30%; }
+    50% { width: 55%; }
+    80% { width: 85%; }
+    100% { width: 100%; }
+  }
+
+  .home-bar {
+    position: absolute;
+    bottom: 8px; left: 50%; transform: translateX(-50%);
+    width: 134px; height: 5px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.15);
+    z-index: 40;
+  }
+
+  @media (max-width: 440px) {
+    .device {
+      width: 100%; height: 100vh;
+      margin: 0; border-radius: 0;
+      box-shadow: none;
+    }
+  }
+</style>
+
+<div class="device">
+  <div class="island"></div>
+
+  <div class="statusbar">
+    <span class="statusbar-time">9:41</span>
+    <span class="statusbar-icons">
+      <svg width="16" height="11" viewBox="0 0 16 11" fill="none">
+        <path d="M8 9a1 1 0 110 2 1 1 0 010-2z" fill="#fff"/>
+        <path d="M4.8 6.8a4.5 4.5 0 016.4 0" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>
+        <path d="M2 4a7.5 7.5 0 0112 0" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+      <svg width="17" height="11" viewBox="0 0 17 11" fill="#fff">
+        <rect x="0" y="7.5" width="3" height="3.5" rx="0.75"/>
+        <rect x="4.5" y="5" width="3" height="6" rx="0.75"/>
+        <rect x="9" y="2.5" width="3" height="8.5" rx="0.75"/>
+        <rect x="13.5" y="0" width="3" height="11" rx="0.75"/>
+      </svg>
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
+        <rect x="0.5" y="0.5" width="21" height="11" rx="2.5" stroke="#fff" stroke-opacity="0.35"/>
+        <rect x="22.5" y="3.5" width="2" height="5" rx="1" fill="#fff" fill-opacity="0.4"/>
+        <rect x="2" y="2" width="17.5" height="8" rx="1.5" fill="#fff"/>
+      </svg>
+    </span>
+  </div>
+
+  <div class="splash">
+    <div class="logo-area">
+      <!-- Receipt with verification checkmark -->
+      <svg class="logo-mark" viewBox="0 0 72 72" fill="none">
+        <!-- Receipt body -->
+        <rect x="16" y="10" width="32" height="44" rx="3.5" fill="rgba(255,255,255,0.09)" stroke="rgba(255,255,255,0.13)" stroke-width="0.75"/>
+        <!-- Scalloped bottom -->
+        <path d="M19 54l3.5-2.5 3.5 2.5 3.5-2.5 3.5 2.5 3.5-2.5 3.5 2.5 3.5-2.5 3.5 2.5" stroke="rgba(255,255,255,0.12)" stroke-width="0.75" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- Line items -->
+        <rect x="23" y="19" width="16" height="2" rx="1" fill="rgba(255,255,255,0.18)"/>
+        <rect x="23" y="25" width="12" height="1.5" rx="0.75" fill="rgba(255,255,255,0.1)"/>
+        <rect x="23" y="30" width="14" height="1.5" rx="0.75" fill="rgba(255,255,255,0.1)"/>
+        <rect x="23" y="35" width="9" height="1.5" rx="0.75" fill="rgba(255,255,255,0.07)"/>
+        <rect x="23" y="40" width="11" height="1.5" rx="0.75" fill="rgba(255,255,255,0.06)"/>
+        <!-- Teal verification badge -->
+        <circle cx="48" cy="42" r="9.5" fill="#00B4A0"/>
+        <circle cx="48" cy="42" r="9.5" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="0.5"/>
+        <path d="M43.5 42l3 3 5.5-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+
+      <h1 class="app-name">Bill Fixer</h1>
+      <p class="app-tagline">Medical Bill Help</p>
+    </div>
+
+    <div class="loader">
+      <div class="loader-fill"></div>
+    </div>
+  </div>
+
+  <div class="home-bar"></div>
+</div>

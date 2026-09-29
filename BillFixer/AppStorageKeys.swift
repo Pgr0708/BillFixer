@@ -29,6 +29,11 @@ enum AppStorageKeys {
     static let selectedTheme               = "selectedTheme"
     static let isPremium                   = "isPremium"
 
+    // MARK: Preferences
+    static let hapticsEnabled              = "hapticsEnabled"
+    static let deadlineRemindersEnabled    = "deadlineRemindersEnabled"
+    static let hasSeenSignIn               = "hasSeenSignIn"
+
 }
 
 

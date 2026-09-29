@@ -385,3 +385,256 @@ Account card (top):
 - Full name + email
 - Subscription status badge (Premium Annual / Free)
 - "Manage Subscription" button (if premium)
+
+---
+---
+
+# PART II — V2 SCREEN SET (24 SCREENS)
+
+> Added Sep 28, 2026. Screens 1–12 above are unchanged in *purpose*; this part restates
+> each with its assigned background scene and typographic persona, and adds the 12 screens
+> the original spec didn't cover. Built out in `docs/Claude outputs/v2/BillFixer-Screens.html`.
+
+**Per-screen contract.** Every screen declares four things before layout is written:
+
+```
+SCENE    — background from the Background Registry (DESIGN_SYSTEM.md Part II)
+TYPE     — display face + body face from the Typographic Personas table
+MOTION   — the one ambient animation that defines this screen
+SURFACE  — .card | .glass | .glass-d (which container content lives in)
+```
+
+---
+
+## Screen index
+
+| # | Screen | Scene | Display type | Surface |
+|---|---|---|---|---|
+| 01 | Splash | Aurora Orbit | Bricolage Grotesque | — |
+| 02 | Onboarding · See the full picture | Topographic Mint | Outfit | — |
+| 03 | Onboarding · Evidence, not guesses | Gold Constellation | Fraunces | — |
+| 04 | Onboarding · Your action plan | Ray Burst Lilac | Sora | — |
+| 05 | Sign In | Dusk Skyline | Bricolage Grotesque | `.glass-d` |
+| 06 | Home · Dashboard | Daylight Mesh | Sora | `.glass` + `.card` |
+| 07 | Add Your Document (sheet) | Scrim Bokeh | Manrope | opaque sheet |
+| 08 | Bill Capture · Camera | Viewfinder Grain | Space Grotesk | glass bottom panel |
+| 09 | Review Your Document | Ivory Paper Stock | Source Serif 4 | `.card` |
+| 10 | Extracted Information | Blueprint Grid | Space Grotesk | `.card` |
+| 11 | Analyzing Your Bill | Deep Orbit Navy | Bricolage Grotesque | `.glass-d` |
+| 12 | Analysis Complete | Radiant Burst | Sora | `.card` |
+| 13 | Your Findings | Severity Strata | Archivo | `.card` |
+| 14 | Finding Detail · Strong | Crimson Dawn Hatch | Archivo | `.card` |
+| 15 | Dispute Letter | Linen & Seal | Libre Baskerville | paper card |
+| 16 | Phone Script | Waveform Indigo | Archivo | `.glass-d` |
+| 17 | My Cases | Isometric Slate | Manrope | `.card` |
+| 18 | Case Timeline | Spine Glow | Manrope | `.card` |
+| 19 | Your Rights May Apply | Guilloché Engraving | Newsreader | `.card` |
+| 20 | Financial Assistance | Sunrise Ladder | Calistoga | `.card` |
+| 21 | Bill Fixer Premium | Obsidian Gold Dust | Fraunces | outlined tiers |
+| 22 | Settings | Graphite Rings | Manrope | `.card` |
+| 23 | Empty State · No Cases | Cloud Drift Sky | Calistoga | — |
+| 24 | Case Resolved | Emerald Aurora | Calistoga + Sora | `.glass-d` |
+
+---
+
+## SCREEN 13: Your Findings
+
+**SCENE** Severity Strata · **TYPE** Archivo / Inter · **MOTION** stagger 70ms · **SURFACE** `.card`
+
+Background bands are keyed to the severity tiers themselves: navy hero at the top, then
+crimson, amber, and blue strata descending. Scrolling through the list literally moves you
+down the severity gradient.
+
+- **Header** (on navy) — back chevron, `5 found` pill, `Your Findings` 29pt Archivo 800, provider + date.
+- **Recommended First Step** — gold 1.5pt border + `goldGlow`. Star glyph, `RECOMMENDED FIRST STEP`
+  10px mono tracking .14em, action title, 2-line rationale, gold CTA (46pt tall, not 54 — it's a
+  suggestion, not the primary action of the screen).
+- **Finding cards** — 4pt left border in severity color. Row 1: severity pill (filled) + confidence
+  pill (tinted). Then title / explanation / two amount tiles side by side / `Evidence · N sources`
+  disclosure in teal.
+- **Free tier** — card 2 renders at `blur(5px) opacity(.75)` with a centered unlock overlay
+  (gold lock disc, "Unlock 4 more findings", navy pill). Card 3 is a skeleton at `blur(6px)`.
+  Never blur card 1 — the user must get real value before the wall.
+
+---
+
+## SCREEN 14: Finding Detail · Strong
+
+**SCENE** Crimson Dawn Hatch · **TYPE** Archivo / Playfair for evidence · **MOTION** springGentle expand
+
+- **Nav** back / `Strong Finding` pill / overflow menu.
+- **Hero** 56pt duplicate-document icon tile, title 24pt Archivo 800, amount 30pt mono in `critical`.
+- **Plain-language paragraph** with the CPT code set in mono inline.
+- **Evidence card** — three quotes, each a 3pt left rule in its source color
+  (teal = bill, crimson = the duplicate, navy = EOB). Quote text is **Playfair Display 15pt**:
+  it must read as *transcribed*, not as UI copy.
+- **Why this matters** — `criticalSurface` block, one short paragraph.
+- **The counter-case** — `infoSurface` block explaining when this finding might be legitimate.
+  This is required on every strong finding. We flag; we do not accuse.
+- **Actions** primary `Generate Dispute Letter`, secondary `Not an issue — dismiss`.
+
+---
+
+## SCREEN 15: Dispute Letter
+
+**SCENE** Linen & Seal · **TYPE** Libre Baskerville 12.5pt / 1.78 · **MOTION** tap-to-edit rails
+
+- **Nav** back / `Dispute Letter` + `EOB MISMATCH · DRAFT` mono subtitle / `Edit`.
+- **3-step chip row** Template → Review → Send.
+- **Letter body** on `#FEFDFA` paper card, 8pt radius (paper, not UI), 26px padding.
+  Date block → Re: line (bold) → salutation → body paragraphs → signature in Playfair italic.
+- **Editable paragraphs** carry a transparent 3pt left rule that turns `info` blue and gains a
+  5% tint when tapped. The active paragraph in the mock is the duplicate-charge claim.
+- **Disclaimer** hairline-separated, 10.5pt, `textDisabled`: *"Bill Fixer drafts letters from your
+  documents — it is not legal advice or representation."*
+- **Bottom bar** Copy (navy) + Share (teal), over a gradient fade of the linen field.
+
+---
+
+## SCREEN 16: Phone Script
+
+**SCENE** Waveform Indigo · **TYPE** Archivo / Inter, script in Playfair · **MOTION** bar pulse
+
+- **Nav** back / `Phone Script` / `Billing` context pill.
+- **Call card** (`.glass-d`) avatar disc with pulsing phone glyph, provider name, mono number
+  and hours, green call button.
+- **`STEP 1 · OPENING`** mono label, then the script on a **white** card — maximum contrast,
+  because the user is reading this aloud under stress. Script text is Playfair 15.5pt / 1.66.
+  A 36×3 gradient tab sits on the card's top edge.
+- **Tone chips** below a hairline: `Calm` / `Specific` / `No accusation`.
+- **Branch list** `WHAT DID THEY SAY?` → four `.glass-d` rows, lettered A–D. Row D
+  ("going to collections") carries a crimson border — it routes to the rights sub-flow.
+
+---
+
+## SCREEN 17: My Cases
+
+**SCENE** Isometric Slate · **TYPE** Manrope 800 / Inter · **MOTION** chip reflow
+
+- **Header** avatar disc + `My Cases` 27pt + teal `+` tile.
+- **Search** white pill, 16pt glyph, placeholder "Search provider, amount, code…".
+- **Filter chips** wrap to a second line before any label truncates (`chip-collection-reflow`).
+  Counts sit inside each chip as a de-emphasized bold.
+- **Case cards** provider 16.5pt 800 / status pill · service + date · `CURRENT BALANCE` mono label
+  with 25pt amount, right-aligned `POTENTIAL` or `SAVED` in success green · progress bar ·
+  deadline row with clock glyph in amber when < 7 days.
+- **Tab bar** Cases active, badge `7` on the tab (unresolved findings across all cases).
+
+---
+
+## SCREEN 18: Case Timeline
+
+**SCENE** Spine Glow · **TYPE** Manrope / JetBrains Mono · **MOTION** rail fill
+
+- **Nav** back / provider / overflow. **Tab chips** Summary · Docs · Findings · Letters · **Timeline**.
+- **Event rows** 36pt rounded-square node + 2pt connector rail. Node color encodes event class:
+  teal gradient = ingest, navy = system, neutral = provider, violet = outbound, green = outcome.
+- Each row: title 14.5pt 700 → `MAR 15, 2026 · 10:24 AM` mono 10.5pt tracking .04em → optional payload
+  (severity chips, tracking number in mono, quoted provider response in a bordered white block).
+- **Final row** balance change: strikethrough old amount → new amount 20pt → delta pill.
+- Rail gradient runs teal → `#CBD5E4`, so completed history reads warmer than pending.
+
+---
+
+## SCREEN 19: Your Rights May Apply
+
+**SCENE** Guilloché Engraving · **TYPE** Newsreader 600 / Inter · **MOTION** arc rotate 26s
+
+The guilloché (rotated-ellipse banknote engraving) signals *certificate*, not *courtroom*.
+
+- **Header** on deep teal: back / `4 may apply` pill / shield mark / title 27pt Newsreader /
+  the disclaimer line — **"We flag what to check — we don't practice law."**
+- **Right cards** 42pt tinted icon tile + title + likelihood pill (`Likely` / `Check` / `Always` /
+  `120 days`) + 2-line explanation + `SOURCE · 45 CFR §149.410` in mono 9.5pt.
+- Covered: No Surprises Act, §501(r) financial assistance, right to an itemized bill, GFE dispute.
+- A deadline-bearing right shows `WINDOW CLOSES JUL 13, 2026` in amber mono.
+
+---
+
+## SCREEN 20: Financial Assistance
+
+**SCENE** Sunrise Ladder · **TYPE** Calistoga / Inter · **MOTION** slider track
+
+Warmest screen in the app by design — this is where a user is most likely to feel shame.
+
+- **Header** `§501(r) nonprofit` pill, helping-hand illustration, `You may qualify for help` 27pt Calistoga.
+- **Estimator card** household size stepper (− 3 +) and income slider with a gold track and
+  20pt thumb; `$0` / `$120K` mono bounds.
+- **Result card** green gradient, animated check disc, `Likely eligible` 18pt Calistoga, plain-English
+  explanation with **188% of the Federal Poverty Level** bolded, then two tiles: `YOUR FPL` / `FULL RELIEF UNDER`.
+- **Document checklist** green ticks for confirmed, gray circles for outstanding.
+- **CTA** gold `Draft my assistance letter`.
+
+---
+
+## SCREEN 21: Bill Fixer Premium
+
+**SCENE** Obsidian Gold Dust · **TYPE** Fraunces 600 / Inter · **MOTION** shimmer 2.6s, rise 9–13s
+
+- **Dismiss** ✕ at 30pt, `rgba(255,255,255,.1)` — present but quiet.
+- **Badge** outlined pill, gold star, `BILL FIXER PREMIUM` mono tracking .22em, with a
+  `.shine` sweep layer at 24% opacity.
+- **Headline** 31pt Fraunces, three lines max. Subline 14pt at 55% white.
+- **Features** 2-column grid, 8 rows, teal 3pt checkmarks, staggered 70ms.
+- **Tiers** Annual selected (gold 1.5pt border, 7% gold fill, `SAVE 37%` pill notched onto the
+  top edge, `$5.00 / month, billed yearly` as the real comparison). Monthly is a quiet outline.
+- **CTA** gold gradient with `goldGlow`. Below: auto-renew line, Restore Purchases, Privacy, Terms.
+
+---
+
+## SCREEN 22: Settings
+
+**SCENE** Graphite Rings · **TYPE** Manrope 800 / Inter · **MOTION** drift
+
+- **Account card** 52pt initial disc, name 16.5pt, email, gold `Premium` pill.
+- **Groups** each preceded by a mono 9.5pt tracking .18em label: SUBSCRIPTION · NOTIFICATIONS ·
+  PRIVACY. Rows are 19pt glyph + 15pt label + control, hairline-separated inside one card.
+- **Toggles** 48×29 pill, `success` when on, `#DDE3EC` when off.
+- **Privacy explainer** teal gradient card: *"Scans are read with Apple Vision on this phone.
+  Names and IDs are stripped before anything reaches our servers."*
+- **Destructive group** its own card with a crimson-tinted border, separated by a 14pt gap
+  from everything above (`destructive-nav-separation`). Sign out + Delete account & all data.
+
+---
+
+## SCREEN 23: Empty State · No Cases
+
+**SCENE** Cloud Drift Sky · **TYPE** Calistoga / Inter · **MOTION** drift 17s ×5
+
+- Header keeps `My Cases` + `+` so the empty state is a *state*, not a different screen.
+- **Illustration** isometric folder with a tilted document, two sparkles, contact-shadow ellipse,
+  `float 6s`.
+- `No cases yet` 26pt Calistoga, then one honest sentence about what happens next.
+- **One** primary CTA — `Scan Your First Bill`. No secondary action competing with it.
+- Trust line below: shield glyph + *"Nothing leaves your phone unredacted."*
+
+---
+
+## SCREEN 24: Case Resolved
+
+**SCENE** Emerald Aurora · **TYPE** Calistoga + Sora · **MOTION** ring expand 0.6s, draw 0.9s
+
+- **Check mark** 132pt: pulsing outer ring, glass mid-ring, solid `success` disc, 6pt checkmark
+  path drawn over 0.9s.
+- `Case resolved` 31pt Calistoga, then a factual sentence naming what the provider actually did.
+- **Savings card** (`.glass-d`) `YOU SAVED` mono label, `$892` at 52pt Sora 800, and below a
+  hairline: struck-through original → arrow → final balance.
+- **Stat row** three glass tiles: days to resolve · letters sent · lifetime saved.
+- **Actions** white `Archive this case`, ghost `Share how it went`. Sharing is opt-in and last.
+
+---
+
+## Free vs Premium gating
+
+| Screen | Free | Premium |
+|---|---|---|
+| 12 Results | Count + severity split visible; savings figure shown | Everything |
+| 13 Findings | Finding 1 in full; 2+ blurred behind unlock | All findings |
+| 14 Detail | Only for the unlocked finding | All |
+| 15 Letter | Locked | All templates |
+| 16 Script | Opening statement only | Full branch tree |
+| 19 Rights | Visible — never gated | Visible |
+| 20 Assistance | Estimator visible, letter locked | Everything |
+
+Rights and financial assistance are **never** paywalled. Gating the one screen that
+reaches people who cannot pay is the one thing this product must not do.

@@ -314,3 +314,256 @@ Settings Screen:
 | GFE deadline already passed | Show expired state clearly, explain options |
 | Collections stage detected | Special collections sub-flow with rights information |
 | Subscription lapsed mid-case | Blur new findings, keep existing ones accessible |
+
+---
+---
+
+# PART II — V2 NAVIGATION MAP
+
+> Added Sep 28, 2026. Flows 1–9 above still define behaviour. This part maps them onto the
+> 24 built screens and adds the scene-transition rules that come with the V2 scenic system.
+
+---
+
+## Screen graph — splash to every terminal state
+
+```
+                              ┌─────────────┐
+                              │ 01 SPLASH   │  2.0s, cross-fade
+                              └──────┬──────┘
+                    new user ────────┴──────── returning
+                        │                          │
+            ┌───────────▼──────────┐               │
+            │ 02 → 03 → 04         │               │
+            │ Onboarding (swipe)   │               │
+            └───────────┬──────────┘               │
+                        │                          │
+                 ┌──────▼──────┐                   │
+                 │ 05 SIGN IN  │                   │
+                 └──────┬──────┘                   │
+                        │                          │
+                        └────────┬─────────────────┘
+                                 │
+                        ┌────────▼────────┐
+           ┌───────────►│  06 HOME        │◄────────────┐
+           │            └────────┬────────┘             │
+           │                     │ Scan tab / CTA       │
+           │            ┌────────▼────────┐             │
+           │            │ 07 ADD DOCUMENT │ sheet       │
+           │            └────────┬────────┘             │
+           │           ┌─────────┼─────────┐            │
+           │       camera     photos      pdf           │
+           │           └─────────┼─────────┘            │
+           │            ┌────────▼────────┐             │
+           │            │ 08 CAMERA       │             │
+           │            └────────┬────────┘             │
+           │            ┌────────▼────────┐             │
+           │            │ 09 DOC REVIEW   │             │
+           │            └────────┬────────┘             │
+           │            ┌────────▼────────┐             │
+           │            │ 10 OCR EDIT     │             │
+           │            └────────┬────────┘             │
+           │                 "Have an EOB?"             │
+           │              ┌──────┴──────┐               │
+           │            yes            skip             │
+           │              │              │              │
+           │         (08→09→10          │              │
+           │          again for EOB)     │              │
+           │              └──────┬───────┘              │
+           │            ┌────────▼────────┐             │
+           │            │ 11 ANALYSIS     │ min 2.5s    │
+           │            └────────┬────────┘             │
+           │            ┌────────▼────────┐             │
+           │            │ 12 RESULTS      │             │
+           │            └────────┬────────┘             │
+           │            ┌────────▼────────┐             │
+           │            │ 13 FINDINGS     │◄──── 21 PAYWALL (on unlock)
+           │            └────────┬────────┘
+           │            ┌────────▼────────┐
+           │            │ 14 DETAIL       │
+           │            └────────┬────────┘
+           │        ┌────────────┼────────────┬──────────────┐
+           │   ┌────▼────┐  ┌────▼────┐  ┌────▼────┐   ┌─────▼─────┐
+           │   │15 LETTER│  │16 SCRIPT│  │19 RIGHTS│   │20 ASSIST  │
+           │   └────┬────┘  └────┬────┘  └────┬────┘   └─────┬─────┘
+           │        └────────────┴────────────┴──────────────┘
+           │                     │ logged to case
+           │            ┌────────▼────────┐
+           │            │ 18 TIMELINE     │
+           │            └────────┬────────┘
+           │            ┌────────▼────────┐
+           │            │ 24 RESOLVED     │
+           │            └────────┬────────┘
+           └──────────────────────┘
+
+  Tab bar (persistent on 06, 17, 22, 23):
+  [ Home 06 ] [ Cases 17 ] [ (Scan) 07 ] [ Scripts 16 ] [ Settings 22 ]
+                  │
+                  └── empty → 23 EMPTY STATE
+```
+
+---
+
+## Scene transition rules
+
+Because every screen owns a background, transitions now have to reconcile two scenes.
+Three rules keep it from feeling like a slideshow:
+
+**1. Forward navigation cross-fades the background, slides the content.**
+The scene layer cross-fades over 0.35s while content slides horizontally over 0.25s.
+The background always settles *before* the content does — the room changes, then you arrive.
+
+**2. Value-tier transitions run dark→light or light→dark deliberately.**
+
+| Transition | Direction | Why |
+|---|---|---|
+| 10 → 11 Analysis | light → dark | Work is happening; attention narrows |
+| 11 → 12 Results | dark → light | Relief; the answer is here |
+| 13 → 21 Paywall | light → obsidian | A deliberate mode change, not a nag |
+| 18 → 24 Resolved | light → emerald | Earned, celebratory |
+
+**3. Modal sheets never change the scene.** 07 (Add Document) blurs and scrims the scene
+underneath it rather than replacing it, so the user keeps their place.
+
+---
+
+## Flow 2a: Capture, expanded (V2)
+
+```
+06 Home · Scan CTA or center tab
+   └── haptic: medium
+        ▼
+07 Add Your Document  (sheet, .presentationDetents([.medium]))
+   ├── Take a Photo      → 08
+   ├── Import from Photos → 09 (skip camera)
+   └── Import PDF        → 09 (skip camera)
+   └── inline hint: "Adding both bill and EOB unlocks reconciliation"
+        ▼
+08 Bill Capture
+   ├── edge detection → green rect + "Document detected · sharp"
+   ├── capture → screen flash + haptic.medium, thumbnail appends
+   ├── page thumbnails: tap to select, long-press to delete
+   └── Done (N) → 09
+        ▼
+09 Review Your Document
+   ├── page carousel, low-confidence regions outlined in crimson
+   ├── OCR badge: "OCR 96%"
+   └── Continue → 10
+        ▼
+10 Extracted Information
+   ├── fields grouped: header / financial / line items
+   ├── low-confidence field: amber 4pt rail + "⚠ Check this" + confidence bar
+   ├── duplicate line pre-highlighted in crimson (deterministic check, pre-LLM)
+   └── Run Analysis → "Have an EOB?" → yes: loop 08–10 · skip: → 11
+        ▼
+11 Analyzing (steps complete sequentially, haptic.light each) → 12
+```
+
+**Error states**, unchanged in logic, now scene-aware:
+
+| Error | Where | Treatment |
+|---|---|---|
+| Page unreadable | 08 | Bracket color → crimson, toast "We couldn't read this page clearly. Retake?" |
+| Encrypted PDF | 07 | Sheet stays open, inline error under the PDF row |
+| Poor quality | 08 | Detection chip → amber "Low contrast — try more light" |
+| No bill detected | 08 | Brackets stop pulsing, hint returns |
+| Offline | 11 | Step 4 (hospital prices) shows an offline chip; other steps still complete |
+
+---
+
+## Flow 3a: Findings, expanded (V2)
+
+```
+12 Analysis Complete
+   ├── donut counts up 0→5 over 1.4s, haptic.success on settle
+   ├── severity chips stagger in 70ms apart
+   ├── savings card shimmers once
+   └── View All Findings → 13
+        ▼
+13 Your Findings
+   ├── Recommended First Step pinned above the list (gold)
+   ├── cards sorted Strong → Likely → Possible → Informational
+   ├── swipe right → dismiss "Not an issue"
+   ├── swipe left  → generate letter
+   ├── FREE: card 1 full, cards 2+ blurred → 21
+   └── tap card → 14
+        ▼
+14 Finding Detail
+   ├── evidence block always cites document + page + line
+   ├── counter-case block is mandatory on Strong findings
+   └── Generate Dispute Letter → 15
+```
+
+---
+
+## Flow 10 (new): Rights and assistance
+
+Reachable from 12 (`Rights` quick action), 14 (rights-type finding), and 16 branch D.
+
+```
+12 / 14 / 16-D
+   ▼
+19 Your Rights May Apply
+   ├── No Surprises Act        → 15 letter (NSA template)
+   ├── §501(r) assistance      → 20
+   ├── Itemized bill right     → 15 letter (itemization request)
+   └── GFE dispute             → 15 letter (GFE template) + deadline → 18
+        ▼
+20 Financial Assistance
+   ├── household size + income → FPL estimate
+   ├── document checklist
+   └── Draft my assistance letter → 15
+        ▼
+"Set a reminder to follow up?" → writes a deadline event to 18
+```
+
+**Never gated.** 19 and 20 are fully available on the free tier. See the gating table in
+`SCREENS.md` Part II.
+
+---
+
+## Flow 11 (new): Resolution
+
+```
+18 Case Timeline
+   ├── "Balance was reduced" → enter new amount → savings computed
+   ├── provider response logged (quoted, with date)
+   └── Mark Resolved
+        ├── select outcome per finding
+        ├── enter final balance
+        ▼
+24 Case Resolved
+   ├── checkmark draw 0.9s + haptic.success
+   ├── savings counts up
+   ├── Archive this case → 17 (Resolved filter)
+   └── Share how it went → share sheet (opt-in, never prompted twice)
+```
+
+---
+
+## Tab bar behaviour
+
+| Tab | Screen | Badge | Notes |
+|---|---|---|---|
+| Home | 06 | — | Scroll position preserved on return |
+| Cases | 17 / 23 | Unresolved finding count | 23 replaces 17 when the list is empty |
+| Scan | 07 | — | Elevated FAB; presents a sheet, never pushes |
+| Scripts | 16 | — | Opens the script picker when no case is in context |
+| Settings | 22 | — | — |
+
+Center tab presents a **sheet**, not a tab switch — the scan flow is a task, not a
+destination, and it must be dismissible back to wherever the user was
+(`modal-vs-navigation`).
+
+---
+
+## Accessibility checkpoints per flow
+
+- **Capture (08)** — detection state announced via `aria-live`/`UIAccessibility.post`, never
+  color-only; capture button is 78pt.
+- **Findings (13)** — severity conveyed by pill *label* + icon + color, never color alone.
+- **Blurred paywall cards (13)** — hidden from the accessibility tree entirely; the unlock
+  overlay is the only focusable element in that region.
+- **Timeline (18)** — each node has a text alternative naming the event class.
+- **All scenes** — background SVGs are `aria-hidden="true"`; they carry no information.
+- **Reduced motion** — every flow completes identically with all animation disabled.
