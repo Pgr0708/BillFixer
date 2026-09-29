@@ -79,12 +79,11 @@ struct BFTabBar: View {
 
     private func tabItem(_ tab: AppTab) -> some View {
         let isActive = selection == tab
-        // Vivid per-tab accent colors
         let activeColor: Color = switch tab {
-            case .home:     Color(hex: 0x00BFA5)   // vivid teal
-            case .cases:    Color(hex: 0x2E7DF6)   // bright blue
-            case .learn:    Color(hex: 0x8B5CF6)   // vivid violet
-            case .settings: Color(hex: 0x00BFA5)   // vivid teal
+            case .home:     Color(hex: 0x00BFA5)
+            case .cases:    Color(hex: 0x2E7DF6)
+            case .learn:    Color(hex: 0x8B5CF6)
+            case .settings: Color(hex: 0x00BFA5)
             default:        Color(hex: 0x2E7DF6)
         }
         return Button {
@@ -94,29 +93,28 @@ struct BFTabBar: View {
         } label: {
             VStack(spacing: 5) {
                 ZStack {
-                    // Glow ring behind active circle
-                    if isActive {
-                        Circle()
-                            .fill(activeColor.opacity(0.18))
-                            .frame(width: 52, height: 52)
-                            .matchedGeometryEffect(id: "tabGlow", in: ns)
-                    }
-                    // Active fill circle
-                    if isActive {
-                        Circle()
-                            .fill(activeColor)
-                            .frame(width: 42, height: 42)
-                            .shadow(color: activeColor.opacity(0.45), radius: 8, y: 3)
-                            .matchedGeometryEffect(id: "tabCircle", in: ns)
-                    }
+                    // Glow ring — always rendered, fades in/out
+                    Circle()
+                        .fill(activeColor.opacity(0.18))
+                        .frame(width: 52, height: 52)
+                        .opacity(isActive ? 1 : 0)
+                        .scaleEffect(isActive ? 1 : 0.6)
+
+                    // Fill circle — always rendered, fades in/out
+                    Circle()
+                        .fill(activeColor)
+                        .frame(width: 42, height: 42)
+                        .shadow(color: activeColor.opacity(0.45), radius: 8, y: 3)
+                        .opacity(isActive ? 1 : 0)
+                        .scaleEffect(isActive ? 1 : 0.5)
+
                     Image(systemName: tab.symbol)
                         .font(.system(size: isActive ? 17 : 18, weight: .semibold))
                         .foregroundStyle(isActive ? .white : Color(hex: 0xA0AEC0))
-                        .symbolEffect(.bounce, value: isActive)
                         .scaleEffect(isActive ? 1.05 : 1.0)
-                        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isActive)
                 }
                 .frame(width: 52, height: 44)
+                .animation(.spring(response: 0.3, dampingFraction: 0.65), value: isActive)
 
                 Text(tab.title)
                     .font(.system(size: 10, weight: isActive ? .bold : .semibold))
