@@ -74,7 +74,15 @@ def run(conn, force: bool = False) -> Tuple[str, int, str]:
         conn.commit()
         if have == 24 and year < this_year and not force:
             continue  # past years never change
-        rows = fetch_year(year)
+        try:
+            rows = fetch_year(year)
+        except http.UpstreamError as exc:
+            if have == 24:
+                # Guidelines change once a year; if HHS blocks this server today, the copy we have is still correct.
+                log.warning("fpl %s: source unreachable (%s) — keeping the %s rows already stored", year, exc, have)
+                notes.append(f"{year}: kept existing (source unreachable)")
+                continue
+            raise
         if not rows:
             notes.append(f"{year}: not available")
             continue
