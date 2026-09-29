@@ -1,6 +1,6 @@
 //
 //  NotificationScreenView.swift
-//  BillFixer
+//  BillFixer — Notification permission prompt with circular design
 //
 
 import SwiftUI
@@ -12,101 +12,185 @@ struct NotificationScreenView: View {
     @Environment(\.openURL) private var openURL
     @StateObject private var notificationManager = NotificationManager()
     @State private var isRequesting = false
+    @State private var appeared = false
+
+    private let features: [(String, String, Color)] = [
+        ("Deadline reminders",   "calendar.badge.clock",        Color(hex: "#0F2B5B")),
+        ("Follow-up nudges",     "arrow.uturn.forward.circle",  Color(hex: "#00897B")),
+        ("Analysis updates",     "bell.badge.fill",             Color(hex: "#E8A422")),
+    ]
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Text("BillFixer")
-                    .font(.custom("Nunito-ExtraBold", size: 20, relativeTo: .headline))
-                    .foregroundStyle(Color(hex: "#0B2B5C"))
+        ZStack {
+            // ── Background ──────────────────────────────────────────────
+            Color(hex: "#F7F9FD").ignoresSafeArea()
+
+            // ── Circular decorations ─────────────────────────────────────
+            circleDecorations
+
+            // ── Content ──────────────────────────────────────────────────
+            VStack(spacing: 0) {
+
+                // Top bar
+                HStack {
+                    HStack(spacing: 8) {
+                        Circle()
+                            .fill(LinearGradient(
+                                colors: [Color(hex: "#0F2B5B"), Color(hex: "#00B4A0")],
+                                startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 32, height: 32)
+                            .overlay {
+                                Text("B")
+                                    .font(.system(size: 16, weight: .black, design: .rounded))
+                                    .foregroundStyle(.white)
+                            }
+                        Text("BillFixer")
+                            .font(.system(size: 19, weight: .black, design: .rounded))
+                            .foregroundStyle(Color(hex: "#0F2B5B"))
+                    }
+                    Spacer()
+                    Button("Skip") { continueWithoutReminders() }
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(Color(hex: "#718096"))
+                        .frame(minWidth: 44, minHeight: 44)
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 8)
+
                 Spacer()
-                Button("Skip") { continueWithoutReminders() }
-                    .font(.custom("DMSans-Bold", size: 14, relativeTo: .subheadline))
-                    .foregroundStyle(Color(hex: "#087D91"))
-            }
 
-            Spacer(minLength: 22)
+                // ── Large circular bell icon ─────────────────────────────
+                ZStack {
+                    // Outer pulse ring
+                    Circle()
+                        .strokeBorder(Color(hex: "#0F2B5B").opacity(0.10), lineWidth: 2)
+                        .frame(width: 170, height: 170)
+                        .scaleEffect(appeared ? 1 : 0.6)
+                        .opacity(appeared ? 1 : 0)
 
-            Image(systemName: "bell.badge.fill")
-                .font(.system(size: 46, weight: .medium))
-                .symbolRenderingMode(.palette)
-                .foregroundStyle(.white, Color(hex: "#47D7C2"))
-                .frame(width: 120, height: 120)
-                .background(
-                    LinearGradient(colors: [Color(hex: "#0D55A5"), Color(hex: "#0B2B5C")], startPoint: .topLeading, endPoint: .bottomTrailing),
-                    in: RoundedRectangle(cornerRadius: 38, style: .continuous)
-                )
-                .shadow(color: Color(hex: "#0B2B5C").opacity(0.18), radius: 24, y: 12)
+                    Circle()
+                        .fill(Color(hex: "#0F2B5B").opacity(0.07))
+                        .frame(width: 148, height: 148)
+                        .scaleEffect(appeared ? 1 : 0.6)
+                        .opacity(appeared ? 1 : 0)
+
+                    // Main circle
+                    Circle()
+                        .fill(LinearGradient(
+                            colors: [Color(hex: "#0F2B5B"), Color(hex: "#1A3F82")],
+                            startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .frame(width: 118, height: 118)
+                        .shadow(color: Color(hex: "#0F2B5B").opacity(0.3), radius: 24, y: 10)
+                        .scaleEffect(appeared ? 1 : 0.5)
+                        .opacity(appeared ? 1 : 0)
+
+                    Image(systemName: "bell.badge.fill")
+                        .font(.system(size: 46, weight: .medium))
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(.white, Color(hex: "#00D4BC"))
+                        .scaleEffect(appeared ? 1 : 0.5)
+                        .opacity(appeared ? 1 : 0)
+                }
+                .animation(.spring(response: 0.6, dampingFraction: 0.72), value: appeared)
                 .accessibilityHidden(true)
 
-            Text("Stay on top of your case")
-                .font(.custom("Nunito-ExtraBold", size: 30, relativeTo: .largeTitle))
-                .foregroundStyle(Color(hex: "#14213D"))
-                .multilineTextAlignment(.center)
-                .padding(.top, 28)
+                Spacer().frame(height: 32)
 
-            Text("Get a reminder when it’s time to follow up or take action on a bill.")
-                .font(.system(size: 16))
-                .foregroundStyle(Color(hex: "#4A5A75"))
-                .multilineTextAlignment(.center)
-                .lineSpacing(4)
-                .padding(.top, 10)
-
-            VStack(alignment: .leading, spacing: 15) {
-                reminderRow("Deadline reminders", symbol: "calendar.badge.clock")
-                reminderRow("Follow-up nudges", symbol: "arrow.uturn.forward.circle")
-                reminderRow("Analysis updates", symbol: "checkmark.circle")
-            }
-            .padding(18)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.white, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .stroke(Color(hex: "#E5EBF4"), lineWidth: 1)
-            }
-            .padding(.top, 28)
-
-            if notificationManager.authorizationStatus == .denied {
-                Text("Notifications are off. You can enable them in Settings or continue without reminders.")
-                    .font(.system(size: 13))
-                    .foregroundStyle(Color(hex: "#64748B"))
+                // Heading
+                Text("Stay on top of your case")
+                    .font(.system(size: 30, weight: .bold, design: .rounded))
+                    .foregroundStyle(Color(hex: "#1A202C"))
                     .multilineTextAlignment(.center)
-                    .padding(.top, 16)
-            }
+                    .offset(y: appeared ? 0 : 20)
+                    .opacity(appeared ? 1 : 0)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.75).delay(0.1), value: appeared)
 
-            Spacer(minLength: 24)
+                Text("Get a reminder when it's time to follow up or take action on a bill.")
+                    .font(.system(size: 16))
+                    .foregroundStyle(Color(hex: "#4A5568"))
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(4)
+                    .padding(.top, 10)
+                    .padding(.horizontal, 30)
+                    .offset(y: appeared ? 0 : 16)
+                    .opacity(appeared ? 1 : 0)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.75).delay(0.15), value: appeared)
 
-            Button(action: primaryAction) {
-                HStack(spacing: 9) {
-                    if isRequesting {
-                        ProgressView().tint(.white)
-                    } else {
-                        Text(notificationManager.authorizationStatus == .denied ? "Open Settings" : "Enable Notifications")
-                        Image(systemName: notificationManager.authorizationStatus == .denied ? "arrow.up.right" : "bell")
-                            .font(.system(size: 14, weight: .bold))
+                Spacer().frame(height: 28)
+
+                // ── Feature cards (circular icon style) ─────────────────
+                VStack(spacing: 12) {
+                    ForEach(Array(features.enumerated()), id: \.offset) { i, feature in
+                        featureRow(feature.0, symbol: feature.1, color: feature.2)
+                            .offset(y: appeared ? 0 : 20)
+                            .opacity(appeared ? 1 : 0)
+                            .animation(
+                                .spring(response: 0.5, dampingFraction: 0.75)
+                                    .delay(0.2 + Double(i) * 0.07),
+                                value: appeared
+                            )
                     }
                 }
-                .font(.custom("DMSans-Bold", size: 16, relativeTo: .headline))
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .frame(height: 56)
-                .background(
-                    LinearGradient(colors: [Color(hex: "#0B2B5C"), Color(hex: "#176AC4")], startPoint: .leading, endPoint: .trailing),
-                    in: RoundedRectangle(cornerRadius: 18, style: .continuous)
-                )
-            }
-            .buttonStyle(.plain)
-            .disabled(isRequesting)
+                .padding(.horizontal, 24)
 
-            Button("Continue without reminders", action: continueWithoutReminders)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(Color(hex: "#4A5A75"))
-                .padding(.top, 14)
-                .padding(.bottom, 12)
+                // Denied notice
+                if notificationManager.authorizationStatus == .denied {
+                    Text("Notifications are off. Enable them in Settings or continue without reminders.")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Color(hex: "#64748B"))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 24)
+                        .padding(.top, 16)
+                }
+
+                Spacer()
+
+                // ── Primary CTA ──────────────────────────────────────────
+                Button(action: primaryAction) {
+                    HStack(spacing: 9) {
+                        if isRequesting {
+                            ProgressView().tint(.white)
+                        } else {
+                            Text(notificationManager.authorizationStatus == .denied
+                                 ? "Open Settings"
+                                 : "Enable Notifications")
+                                .font(.system(size: 17, weight: .bold, design: .rounded))
+                            Image(systemName: notificationManager.authorizationStatus == .denied
+                                  ? "arrow.up.right" : "bell.fill")
+                                .font(.system(size: 15, weight: .bold))
+                        }
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 56)
+                    .background(
+                        LinearGradient(
+                            colors: [Color(hex: "#0F2B5B"), Color(hex: "#00B4A0")],
+                            startPoint: .leading, endPoint: .trailing
+                        )
+                    )
+                    .clipShape(Capsule())
+                    .shadow(color: Color(hex: "#0F2B5B").opacity(0.3), radius: 16, y: 8)
+                }
+                .buttonStyle(.plain)
+                .disabled(isRequesting)
+                .padding(.horizontal, 28)
+                .scaleEffect(appeared ? 1 : 0.9)
+                .opacity(appeared ? 1 : 0)
+                .animation(.spring(response: 0.5, dampingFraction: 0.75).delay(0.4), value: appeared)
+
+                Button("Continue without reminders", action: continueWithoutReminders)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Color(hex: "#718096"))
+                    .padding(.top, 14)
+                    .padding(.bottom, 50)
+                    .opacity(appeared ? 1 : 0)
+                    .animation(.easeIn(duration: 0.3).delay(0.45), value: appeared)
+            }
         }
-        .padding(.horizontal, 24)
-        .padding(.top, 8)
-        .background(Color(hex: "#F7F9FD").ignoresSafeArea())
+        .onAppear {
+            withAnimation { appeared = true }
+        }
         .task {
             await notificationManager.refreshAuthorizationStatus()
             if notificationManager.isAuthorized {
@@ -126,33 +210,73 @@ struct NotificationScreenView: View {
         }
     }
 
-    private func reminderRow(_ title: String, symbol: String) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: symbol)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(Color(hex: "#087D91"))
-                .frame(width: 22)
+    // MARK: - Feature Row (circular icon)
+
+    private func featureRow(_ title: String, symbol: String, color: Color) -> some View {
+        HStack(spacing: 16) {
+            Circle()
+                .fill(color.opacity(0.12))
+                .frame(width: 46, height: 46)
+                .overlay {
+                    Image(systemName: symbol)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(color)
+                }
+
             Text(title)
-                .font(.system(size: 14, weight: .medium))
+                .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(Color(hex: "#253653"))
+
             Spacer()
-            Image(systemName: "checkmark")
-                .font(.system(size: 12, weight: .bold))
-                .foregroundStyle(Color(hex: "#12A785"))
+
+            Circle()
+                .fill(Color(hex: "#00B4A0").opacity(0.15))
+                .frame(width: 26, height: 26)
+                .overlay {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(Color(hex: "#00897B"))
+                }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .shadow(color: .black.opacity(0.05), radius: 8, y: 2)
+    }
+
+    // MARK: - Circular background decorations
+
+    private var circleDecorations: some View {
+        ZStack {
+            Circle()
+                .fill(Color(hex: "#0F2B5B").opacity(0.05))
+                .frame(width: 300, height: 300)
+                .offset(x: 160, y: -200)
+
+            Circle()
+                .fill(Color(hex: "#00B4A0").opacity(0.06))
+                .frame(width: 220, height: 220)
+                .offset(x: -130, y: 320)
+
+            Circle()
+                .strokeBorder(Color(hex: "#0F2B5B").opacity(0.06), lineWidth: 1)
+                .frame(width: 160, height: 160)
+                .offset(x: -140, y: -140)
         }
     }
+
+    // MARK: - Actions
 
     private func primaryAction() {
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         if notificationManager.authorizationStatus == .denied {
-            let settingsURL = URL(string: UIApplication.openSettingsURLString)!
-            openURL(settingsURL) { accepted in
-                if !accepted { DropsManager.showError(title: "Couldn’t open Settings") }
+            let url = URL(string: UIApplication.openSettingsURLString)!
+            openURL(url) { accepted in
+                if !accepted { DropsManager.showError(title: "Couldn't open Settings") }
             }
-            DropsManager.showInfo(title: "Notification settings opened")
             return
         }
-
         isRequesting = true
         Task {
             defer { isRequesting = false }
@@ -161,14 +285,14 @@ struct NotificationScreenView: View {
                     settings.notificationsEnabled = true
                     settings.hasSeenNotificationPrompt = true
                     UINotificationFeedbackGenerator().notificationOccurred(.success)
-                    DropsManager.showSuccess(title: "Reminders enabled", subtitle: "We’ll keep you up to date on your case")
+                    DropsManager.showSuccess(title: "Reminders enabled", subtitle: "We'll keep you up to date on your case")
                 } else {
                     UINotificationFeedbackGenerator().notificationOccurred(.warning)
-                    DropsManager.showInfo(title: "Notifications remain off", subtitle: "You can enable them later in Settings")
+                    DropsManager.showInfo(title: "Notifications off", subtitle: "You can enable them later in Settings")
                 }
             } catch {
                 UINotificationFeedbackGenerator().notificationOccurred(.error)
-                DropsManager.showError(title: "Couldn’t request permission", subtitle: error.localizedDescription)
+                DropsManager.showError(title: "Couldn't request permission", subtitle: error.localizedDescription)
             }
         }
     }
@@ -177,7 +301,6 @@ struct NotificationScreenView: View {
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
         settings.notificationsEnabled = false
         settings.hasSeenNotificationPrompt = true
-        DropsManager.showInfo(title: "Continuing without reminders", subtitle: "You can change this any time in Settings")
     }
 }
 
