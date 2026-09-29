@@ -32,9 +32,16 @@ HAD_UFW_ON=0; command -v ufw >/dev/null && ufw status 2>/dev/null | grep -q "Sta
 log "1/10  System packages"
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -y
-apt-get install -y curl git ufw nginx certbot python3 python3-venv python3-pip build-essential ca-certificates gnupg iproute2
-if [[ $HAD_MYSQL -eq 0 ]]; then apt-get install -y mysql-server; else echo "  existing MySQL/MariaDB found — using it, not installing another"; fi
-if [[ $HAD_REDIS -eq 0 ]]; then apt-get install -y redis-server; else echo "  existing Redis found — using it"; fi
+# Install ONLY packages that are missing. `apt-get install` on an installed package would upgrade it and
+# restart it (nginx, MySQL, Redis) — never do that on a server that runs other sites.
+install_missing() {
+  local missing=()
+  for p in "$@"; do dpkg -s "$p" >/dev/null 2>&1 || missing+=("$p"); done
+  if [[ ${#missing[@]} -gt 0 ]]; then apt-get install -y --no-upgrade "${missing[@]}"; else echo "  all present: $*"; fi
+}
+install_missing curl git ufw nginx certbot python3 python3-venv python3-pip build-essential ca-certificates gnupg iproute2
+if [[ $HAD_MYSQL -eq 0 ]]; then install_missing mysql-server; else echo "  existing MySQL/MariaDB found — using it as is"; fi
+if [[ $HAD_REDIS -eq 0 ]]; then install_missing redis-server; else echo "  existing Redis found — using it as is"; fi
 
 log "2/10  Node.js + PM2"
 if [[ $HAD_NODE -eq 0 ]]; then
@@ -69,7 +76,8 @@ if [[ $HAD_MYSQL -eq 0 ]]; then
   systemctl restart mysql
 else
   # Shared database server: no global config, no restart. BillFixer sets UTC + strict mode per connection.
-  mysql -e "SET GLOBAL event_scheduler = ON" 2>/dev/null || warn "Could not enable event_scheduler (housekeeping events). Ask your DB admin to set event_scheduler=ON."
+  # Never flip server-wide switches here. MySQL 8 has event_scheduler ON by default; if it's OFF, someone chose that.
+  [[ "$(mysql -N -e 'SELECT @@event_scheduler')" == "ON" ]] || warn "event_scheduler is OFF: BillFixer's nightly cleanup events won't run (harmless; tables just grow slowly)."
 fi
 COLLATION="utf8mb4_0900_ai_ci"
 mysql -N -e "SELECT VERSION()" | grep -qi mariadb && COLLATION="utf8mb4_unicode_ci"
@@ -125,6 +133,11 @@ if port_in_use "$APP_PORT" && ! sudo -u "$APP_USER" pm2 describe billfixer-api >
   echo "  port 3000 is used by another app — BillFixer will listen on ${APP_PORT}"
 fi
 echo "  API port: ${APP_PORT} (localhost only; nginx proxies to it)"
+# Shared server: 2 workers (≈20 MySQL connections, ≈1 GB RAM max) instead of one per CPU core.
+if [[ $HAD_MYSQL -eq 1 ]] && ! grep -q '^PM2_INSTANCES=' "$BACKEND/.env"; then
+  echo "PM2_INSTANCES=2" >> "$BACKEND/.env"
+  echo "  shared server → PM2_INSTANCES=2 (change in .env if you need more)"
+fi
 
 log "8/10  Dependencies, database schema, PM2"
 sudo -u "$APP_USER" bash -c "cd '$BACKEND' && npm ci --omit=dev && npm run migrate:seed"
@@ -137,26 +150,29 @@ sudo -u "$APP_USER" pm2 set pm2-logrotate:retain 14 >/dev/null
 log "9/10  nginx site + TLS certificate (other sites untouched)"
 mkdir -p /var/www/certbot
 cp "$BACKEND/nginx/billfixer-proxy.conf" /etc/nginx/snippets/billfixer-proxy.conf
-# Only remove the stock "Welcome to nginx" default site, never a real one.
-if [[ -L /etc/nginx/sites-enabled/default ]] && grep -q "root /var/www/html" /etc/nginx/sites-available/default 2>/dev/null \
-   && ! grep -qE "^\s*server_name\s+[^_; ]" /etc/nginx/sites-available/default; then
-  rm -f /etc/nginx/sites-enabled/default
-fi
+# Other sites (including "default") are never modified or removed; BillFixer only answers its own server_name.
 if [[ ! -d "/etc/letsencrypt/live/$DOMAIN" ]]; then
   cp "$BACKEND/nginx/billfixer-bootstrap.conf" /etc/nginx/sites-available/billfixer.conf
   ln -sf /etc/nginx/sites-available/billfixer.conf /etc/nginx/sites-enabled/billfixer.conf
-  nginx -t && systemctl reload nginx
-  certbot certonly --webroot -w /var/www/certbot -d "$DOMAIN" --email "$EMAIL" --agree-tos --non-interactive
+  if ! nginx -t; then rm -f /etc/nginx/sites-enabled/billfixer.conf; warn "nginx config test failed — BillFixer site removed again, other sites untouched."; exit 1; fi
+  systemctl reload nginx
+  # The reload hook is stored in THIS certificate's renewal file only (no global certbot config change).
+  certbot certonly --webroot -w /var/www/certbot -d "$DOMAIN" --email "$EMAIL" --agree-tos --non-interactive \
+    --deploy-hook "systemctl reload nginx"
 fi
-sed "s|127.0.0.1:3000|127.0.0.1:${APP_PORT}|" "$BACKEND/nginx/billfixer.conf" > /etc/nginx/sites-available/billfixer.conf
+# Build the final file BEFORE enabling it: right port, and the http2 syntax this nginx understands.
+TMP_CONF="$(mktemp)"
+sed "s|127.0.0.1:3000|127.0.0.1:${APP_PORT}|" "$BACKEND/nginx/billfixer.conf" > "$TMP_CONF"
+NGINX_VER="$(nginx -v 2>&1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
+if [[ "$(printf '%s\n1.25.1\n' "$NGINX_VER" | sort -V | head -1)" != "1.25.1" ]]; then
+  # nginx < 1.25.1 (e.g. Ubuntu 22.04's 1.18) doesn't know "http2 on;" — use the older listen syntax.
+  sed -i 's/^\s*http2 on;.*$//; s/listen 443 ssl;/listen 443 ssl http2;/; s/listen \[::\]:443 ssl;/listen [::]:443 ssl http2;/' "$TMP_CONF"
+fi
+install -m 644 "$TMP_CONF" /etc/nginx/sites-available/billfixer.conf && rm -f "$TMP_CONF"
 ln -sf /etc/nginx/sites-available/billfixer.conf /etc/nginx/sites-enabled/billfixer.conf
-if ! nginx -t 2>/dev/null; then
-  # nginx < 1.25.1 doesn't know "http2 on;" — fall back to the older syntax.
-  sed -i 's/^\s*http2 on;.*$//; s/listen 443 ssl;/listen 443 ssl http2;/; s/listen \[::\]:443 ssl;/listen [::]:443 ssl http2;/' /etc/nginx/sites-available/billfixer.conf
-fi
-nginx -t && systemctl reload nginx
-systemctl enable --now certbot.timer 2>/dev/null || true
-grep -qs "deploy-hook = systemctl reload nginx" /etc/letsencrypt/cli.ini || echo 'deploy-hook = systemctl reload nginx' >> /etc/letsencrypt/cli.ini
+if ! nginx -t; then rm -f /etc/nginx/sites-enabled/billfixer.conf; warn "nginx config test failed — BillFixer site removed again, other sites untouched."; exit 1; fi
+systemctl reload nginx   # graceful: existing connections to other sites are not dropped
+systemctl is-enabled certbot.timer >/dev/null 2>&1 || warn "certbot.timer is not enabled — make sure 'certbot renew' runs (cron or timer) so HTTPS renews."
 
 log "10/10  Official data pipeline (Python, systemd timer)"
 bash "$BACKEND/data-pipeline/install.sh" "$APP_USER"

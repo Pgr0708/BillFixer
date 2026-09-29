@@ -5,6 +5,8 @@
  *                      so you can run this same file on more servers behind nginx's upstream.
  *  Zero downtime:      `pm2 reload` restarts workers one at a time; wait_ready waits for process.send('ready').
  */
+require('dotenv').config({ path: require('path').join(__dirname, '.env') }); // PM2_INSTANCES etc.
+
 module.exports = {
   apps: [
     {
