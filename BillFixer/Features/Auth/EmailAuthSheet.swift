@@ -5,7 +5,7 @@ struct EmailAuthSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showForgot = false
     @FocusState private var focus: Field?
-    private enum Field { case name, email, password, confirm }
+    private enum Field: String { case name = "displayName", email, password, confirm = "confirmPassword" }
 
     var body: some View {
         NavigationStack {
@@ -15,25 +15,26 @@ struct EmailAuthSheet: View {
                         ForEach(AuthViewModel.Mode.allCases) { Text($0.rawValue).tag($0) }
                     }
                     .pickerStyle(.segmented)
-                    .onChange(of: model.mode) { _, _ in model.errors = [:]; model.confirmPassword = ""; Haptics.selection() }
+                    .onChange(of: model.mode) { _, _ in model.resetValidation(); Haptics.selection() }
 
                     Text(model.mode == .signIn ? "Welcome back" : "Create your account")
                         .font(BFFont.title(26)).foregroundStyle(BFColor.text1)
 
                     if model.mode == .register {
                         BFTextField(label: "Name (optional)", text: $model.name, prompt: "Alex Johnson", icon: "person",
-                                    contentType: .name, error: model.errors["displayName"], autocapitalization: .words)
+                                    contentType: .name, error: model.errors["displayName"], isValid: model.isValid("displayName"), autocapitalization: .words)
                             .focused($focus, equals: .name)
                             .transition(.move(edge: .top).combined(with: .opacity))
                     }
                     BFTextField(label: "Email", text: $model.email, prompt: "you@example.com", icon: "envelope",
-                                keyboard: .emailAddress, contentType: .emailAddress, error: model.errors["email"], autocapitalization: .never)
+                                keyboard: .emailAddress, contentType: .emailAddress, error: model.errors["email"], isValid: model.isValid("email"),
+                                autocapitalization: .never)
                         .focused($focus, equals: .email)
                         .submitLabel(.next)
                         .onSubmit { focus = .password }
                     BFTextField(label: "Password", text: $model.password, prompt: model.mode == .register ? "At least 8 characters" : "Your password",
                                 icon: "lock", contentType: model.mode == .register ? .newPassword : .password, isSecure: true,
-                                error: model.errors["password"], autocapitalization: .never)
+                                error: model.errors["password"], isValid: model.isValid("password"), autocapitalization: .never)
                         .focused($focus, equals: .password)
                         .submitLabel(model.mode == .register ? .next : .go)
                         .onSubmit { if model.mode == .register { focus = .confirm } else { submit() } }
@@ -42,7 +43,8 @@ struct EmailAuthSheet: View {
                         Group {
                             PasswordChecklist(password: model.password, email: model.email)
                             BFTextField(label: "Confirm password", text: $model.confirmPassword, prompt: "Type it again", icon: "lock.rotation",
-                                        contentType: .newPassword, isSecure: true, error: model.errors["confirmPassword"], autocapitalization: .never)
+                                        contentType: .newPassword, isSecure: true, error: model.errors["confirmPassword"],
+                                        isValid: model.isValid("confirmPassword"), autocapitalization: .never)
                                 .focused($focus, equals: .confirm)
                                 .submitLabel(.go)
                                 .onSubmit(submit)
@@ -55,7 +57,8 @@ struct EmailAuthSheet: View {
                             .font(BFFont.label(14)).foregroundStyle(BFColor.blue)
                     }
 
-                    BFButton(title: model.mode == .signIn ? "Sign In" : "Create Account", kind: .navy, isLoading: model.isWorking, action: submit)
+                    BFButton(title: model.mode == .signIn ? "Sign In" : "Create Account", kind: .navy, isLoading: model.isWorking,
+                             isDisabled: !model.canSubmit, action: submit)
                         .shake(model.shake)
                         .padding(.top, 4)
 
@@ -65,6 +68,11 @@ struct EmailAuthSheet: View {
                 .padding(24)
                 .animation(BFMotion.gentle, value: model.mode)
                 .animation(BFMotion.quick, value: model.errors)
+                .onChange(of: focus) { old, _ in if let old { model.touch(old.rawValue) } }
+                .onChange(of: model.name) { _, _ in model.edited("displayName") }
+                .onChange(of: model.email) { _, _ in model.edited("email") }
+                .onChange(of: model.password) { _, _ in model.edited("password") }
+                .onChange(of: model.confirmPassword) { _, _ in model.edited("confirmPassword") }
             }
             .scrollDismissesKeyboard(.interactively)
             .background(BFColor.background)

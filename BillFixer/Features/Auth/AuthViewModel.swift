@@ -14,6 +14,8 @@ final class AuthViewModel {
     var password = ""
     var confirmPassword = ""
     var errors: [String: String] = [:]
+    /// Create-account fields the user has left at least once; only these show errors while typing.
+    private(set) var touched: Set<String> = []
     var isWorking = false
     var shake = 0
     private var currentNonce: String?
@@ -58,15 +60,51 @@ final class AuthViewModel {
         }
     }
 
+    // MARK: Live validation (create account)
+
+    private static let registerFields = ["displayName", "email", "password", "confirmPassword"]
+
+    func fieldError(_ key: String) -> String? {
+        switch key {
+        case "displayName": name.trimmed.count > 120 ? "Use at most 120 characters" : nil
+        case "email": Validation.newEmail(email)
+        case "password": Validation.newPassword(password, email: email)
+        case "confirmPassword": Validation.confirm(password, confirmPassword)
+        default: nil
+        }
+    }
+
+    /// Tick shows as soon as a filled-in field passes, even before it's left.
+    func isValid(_ key: String) -> Bool {
+        let value = switch key { case "displayName": name.trimmed; case "email": email; case "password": password; default: confirmPassword }
+        return mode == .register && !value.isEmpty && fieldError(key) == nil
+    }
+
+    var canSubmit: Bool { mode == .signIn || Self.registerFields.allSatisfy { fieldError($0) == nil } }
+
+    /// Field lost focus: start showing its errors.
+    func touch(_ key: String) {
+        guard mode == .register else { return }
+        touched.insert(key)
+        errors[key] = fieldError(key)
+    }
+
+    /// Field text changed: re-check it (and fields that depend on it) if already touched.
+    func edited(_ key: String) {
+        guard mode == .register else { errors[key] = nil; return }
+        let affected = switch key { case "email": ["email", "password"]; case "password": ["password", "confirmPassword"]; default: [key] }
+        for k in affected where touched.contains(k) { errors[k] = fieldError(k) }
+    }
+
+    func resetValidation() { errors = [:]; touched = []; confirmPassword = "" }
+
     // MARK: Email
 
     func submitEmail() async -> Bool {
         errors = [:]
         if mode == .register {
-            if name.trimmed.count > 120 { errors["displayName"] = "Use at most 120 characters" }
-            if let e = Validation.newEmail(email) { errors["email"] = e }
-            if let e = Validation.newPassword(password, email: email) { errors["password"] = e }
-            if let e = Validation.confirm(password, confirmPassword) { errors["confirmPassword"] = e }
+            touched = Set(Self.registerFields)
+            for k in Self.registerFields { if let e = fieldError(k) { errors[k] = e } }
         } else {
             if let e = Validation.email(email) { errors["email"] = e }
             if password.isEmpty { errors["password"] = "Enter your password" }
