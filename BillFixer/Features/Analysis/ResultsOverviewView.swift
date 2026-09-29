@@ -10,16 +10,22 @@ struct ResultsOverviewView: View {
     @State private var revealed = false
 
     var body: some View {
-        ScrollView {
-            if let model {
-                switch model.state {
-                case let .loaded(r): content(r)
-                case let .failed(e): ErrorStateView(error: e) { Task { await model.load() } }
-                default: VStack(spacing: 16) { SkeletonBlock(height: 220, radius: 110).frame(width: 220); SkeletonList(rows: 2) }.padding(BFSpacing.screen)
+        ZStack {
+            LinearGradient(colors: [Color(hex: 0xF5F0FF), Color(hex: 0xF7F9FD)], startPoint: .topLeading, endPoint: .bottomTrailing).ignoresSafeArea()
+            Circle().fill(BFColor.violetSoft).frame(width: 260).blur(radius: 30).offset(x: 160, y: -130)
+            Circle().fill(BFColor.amberSoft).frame(width: 220).blur(radius: 30).offset(x: -120, y: 500)
+
+            ScrollView {
+                if let model {
+                    switch model.state {
+                    case let .loaded(r): content(r)
+                    case let .failed(e): ErrorStateView(error: e) { Task { await model.load() } }
+                    default: VStack(spacing: 16) { SkeletonBlock(height: 220, radius: 110).frame(width: 220); SkeletonList(rows: 2) }.padding(BFSpacing.screen)
+                    }
                 }
             }
+            .scrollIndicators(.hidden)
         }
-        .scenicBackground(.results)
         .navigationTitle("Results")
         .navigationBarTitleDisplayMode(.inline)
         .task {
@@ -32,59 +38,130 @@ struct ResultsOverviewView: View {
     private func content(_ r: FindingsResponse) -> some View {
         let s = r.summary
         return VStack(alignment: .leading, spacing: 20) {
-            Text(s.total == 0 ? "No clear errors found" : "Analysis Complete").font(BFFont.title(28)).foregroundStyle(BFColor.text1).staggeredAppear(0)
+            // Headline
+            Text(s.total == 0 ? "No clear errors found" : "Analysis Complete")
+                .font(.system(size: 28, weight: .black, design: .rounded)).foregroundStyle(BFColor.text1)
+                .staggeredAppear(0)
 
-            HStack(spacing: 20) {
-                DonutChart(segments: Severity.allCases.map { .init(value: Double(s.count($0)), color: $0.color) }.filter { $0.value > 0 }
-                                     .ifEmpty([.init(value: 1, color: BFColor.green)]),
-                           centerValue: "\(s.total)", centerLabel: s.total == 1 ? "Finding" : "Findings")
+            // Circular donut chart card
+            VStack(spacing: 16) {
+                HStack(spacing: 20) {
+                    DonutChart(
+                        segments: Severity.allCases.map { .init(value: Double(s.count($0)), color: $0.color) }.filter { $0.value > 0 }
+                            .ifEmpty([.init(value: 1, color: BFColor.green)]),
+                        centerValue: "\(s.total)", centerLabel: s.total == 1 ? "Finding" : "Findings"
+                    )
                     .frame(width: 150, height: 150)
-                VStack(alignment: .leading, spacing: 8) {
-                    ForEach(Severity.allCases, id: \.self) { sev in
-                        if s.count(sev) > 0 {
-                            Pill(text: "\(s.count(sev)) \(sev == .informational ? "Info" : sev.title)", tone: sev.tone, icon: sev.symbol)
+
+                    VStack(alignment: .leading, spacing: 10) {
+                        ForEach(Severity.allCases, id: \.self) { sev in
+                            if s.count(sev) > 0 {
+                                HStack(spacing: 8) {
+                                    Circle().fill(sev.color).frame(width: 10, height: 10)
+                                    Text("\(s.count(sev)) \(sev == .informational ? "Info" : sev.title)")
+                                        .font(.system(size: 13, weight: .semibold)).foregroundStyle(BFColor.text1)
+                                }
+                            }
                         }
                     }
                 }
+                .frame(maxWidth: .infinity)
             }
-            .frame(maxWidth: .infinity)
-            .cardStyle(padding: 18, radius: 24)
+            .padding(20)
+            .background(Color.white)
+            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .shadow(color: .black.opacity(0.06), radius: 12, y: 4)
             .staggeredAppear(1)
 
             savingsCard(s).staggeredAppear(2)
 
-            BFButton(title: "View Findings", trailingIcon: "arrow.right", kind: .navy) { router.push(.findings(caseId)) }.staggeredAppear(3)
+            // View Findings CTA — capsule with circle icon
+            Button { router.push(.findings(caseId)) } label: {
+                HStack(spacing: 10) {
+                    Circle().fill(.white.opacity(0.2)).frame(width: 30, height: 30)
+                        .overlay { Image(systemName: "list.bullet.rectangle").font(.system(size: 13, weight: .bold)).foregroundStyle(.white) }
+                    Text("View Findings")
+                        .font(.system(size: 16, weight: .black, design: .rounded)).foregroundStyle(.white)
+                    Spacer()
+                    Image(systemName: "arrow.right").font(.system(size: 14, weight: .bold)).foregroundStyle(.white.opacity(0.8))
+                }
+                .padding(.horizontal, 20).frame(height: 56)
+                .background(LinearGradient(colors: [Color(hex: 0x0B2B5C), Color(hex: 0x2E7DF6)], startPoint: .leading, endPoint: .trailing))
+                .clipShape(Capsule())
+                .shadow(color: Color(hex: 0x2E7DF6).opacity(0.35), radius: 14, y: 6)
+            }
+            .buttonStyle(.plain)
+            .staggeredAppear(3)
 
+            // Recommended first step
             if let first = s.recommendedFirstAction, let finding = r.findings.first(where: { $0.id == first.findingId }) {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Start here").overlineStyle()
+                    HStack(spacing: 8) {
+                        Circle().fill(BFColor.redSoft).frame(width: 28, height: 28)
+                            .overlay { Image(systemName: "flag.fill").font(.system(size: 11, weight: .bold)).foregroundStyle(BFColor.red) }
+                        Text("Start here").font(.system(size: 12, weight: .bold)).foregroundStyle(BFColor.text3).tracking(0.5)
+                    }
                     Button { router.push(.finding(caseId: caseId, finding: finding)) } label: {
-                        ActionRow(symbol: "flag.fill", title: first.title, subtitle: "Our recommended first step", tint: BFColor.red, fill: BFColor.redSoft)
+                        HStack(spacing: 12) {
+                            Circle().fill(BFColor.redSoft).frame(width: 44, height: 44)
+                                .overlay { Image(systemName: "flag.fill").font(.system(size: 18, weight: .semibold)).foregroundStyle(BFColor.red) }
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(first.title).font(.system(size: 15, weight: .semibold)).foregroundStyle(BFColor.text1)
+                                Text("Our recommended first step").font(.system(size: 13)).foregroundStyle(BFColor.text3)
+                            }
+                            Spacer()
+                            Circle().fill(BFColor.line.opacity(0.5)).frame(width: 28, height: 28)
+                                .overlay { Image(systemName: "chevron.right").font(.system(size: 11, weight: .bold)).foregroundStyle(BFColor.text4) }
+                        }
+                        .padding(14).background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .shadow(color: .black.opacity(0.05), radius: 6, y: 2)
                     }.buttonStyle(.pressable)
                 }
                 .staggeredAppear(4)
             }
 
+            // Actions
             VStack(alignment: .leading, spacing: 10) {
-                Text("Or jump to an action").overlineStyle()
-                Button { openLetter(r) } label: {
-                    ActionRow(symbol: "envelope.fill", title: "Generate Letter", subtitle: "Ready-to-send dispute or request letter",
-                              tint: BFColor.amber, fill: BFColor.amberSoft, locked: !session.isPremium)
-                }.buttonStyle(.pressable)
-                Button { openScript(r) } label: {
-                    ActionRow(symbol: "phone.fill", title: "Phone Script", subtitle: "What to say when you call", tint: BFColor.teal, fill: BFColor.tealSoft,
-                              locked: !session.isPremium)
-                }.buttonStyle(.pressable)
-                Button { router.push(.rights(caseId: caseId)) } label: {
-                    ActionRow(symbol: "building.columns.fill", title: "View Rights", subtitle: "Protections that may apply", tint: BFColor.violet, fill: BFColor.violetSoft)
-                }.buttonStyle(.pressable)
+                HStack(spacing: 8) {
+                    Circle().fill(BFColor.blueSoft).frame(width: 28, height: 28)
+                        .overlay { Image(systemName: "bolt.fill").font(.system(size: 11, weight: .bold)).foregroundStyle(BFColor.blue) }
+                    Text("Or jump to an action").font(.system(size: 12, weight: .bold)).foregroundStyle(BFColor.text3).tracking(0.5)
+                }
+                actionRow("envelope.fill", BFColor.amber, BFColor.amberSoft, "Generate Letter", "Ready-to-send dispute or request letter", !session.isPremium) { openLetter(r) }
+                actionRow("phone.fill",    BFColor.teal,  BFColor.tealSoft,  "Phone Script",    "What to say when you call",               !session.isPremium) { openScript(r) }
+                actionRow("building.columns.fill", BFColor.violet, BFColor.violetSoft, "View Rights", "Protections that may apply", false) { router.push(.rights(caseId: caseId)) }
             }
             .staggeredAppear(5)
 
-            Text("Bill Fixer isn’t a law firm and doesn’t give legal advice. Findings are based on the details you confirmed and public pricing data.")
+            Text("Bill Fixer isn't a law firm and doesn't give legal advice. Findings are based on the details you confirmed and public pricing data.")
                 .font(.system(size: 11)).foregroundStyle(BFColor.text3)
+            Spacer().frame(height: 100)
         }
         .padding(BFSpacing.screen)
+    }
+
+    private func actionRow(_ icon: String, _ tint: Color, _ fill: Color, _ title: String, _ subtitle: String, _ locked: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Circle().fill(fill).frame(width: 44, height: 44)
+                    .overlay {
+                        Image(systemName: locked ? "lock.fill" : icon)
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(locked ? BFColor.amber : tint)
+                    }
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(title).font(.system(size: 15, weight: .semibold)).foregroundStyle(BFColor.text1)
+                    Text(subtitle).font(.system(size: 13)).foregroundStyle(BFColor.text3)
+                }
+                Spacer()
+                Circle().fill(BFColor.line.opacity(0.5)).frame(width: 28, height: 28)
+                    .overlay { Image(systemName: "chevron.right").font(.system(size: 11, weight: .bold)).foregroundStyle(BFColor.text4) }
+            }
+            .padding(14).background(Color.white)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .shadow(color: .black.opacity(0.05), radius: 6, y: 2)
+        }.buttonStyle(.pressable)
     }
 
     @ViewBuilder
