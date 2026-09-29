@@ -152,6 +152,9 @@ struct TextEntrySheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var text = ""
     @State private var saving = false
+    @State private var speech = SpeechTranscriber()
+    /// Text typed before dictation started; spoken words are appended to it.
+    @State private var dictationBase = ""
 
     var body: some View {
         NavigationStack {
@@ -162,8 +165,13 @@ struct TextEntrySheet: View {
                     .background(BFColor.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                     .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(BFColor.line))
                     .onChange(of: text) { _, t in if t.count > maxLength { text = String(t.prefix(maxLength)) } }
-                Text("\(text.count)/\(maxLength)").font(.caption).foregroundStyle(BFColor.text3).frame(maxWidth: .infinity, alignment: .trailing)
+                HStack {
+                    micButton
+                    Spacer()
+                    Text("\(text.count)/\(maxLength)").font(.caption).foregroundStyle(BFColor.text3)
+                }
                 BFButton(title: button, kind: .navy, isLoading: saving, isDisabled: text.trimmed.isEmpty) {
+                    speech.stop()
                     Task {
                         saving = true
                         if await onSave(text.trimmed) { dismiss() }
@@ -180,5 +188,46 @@ struct TextEntrySheet: View {
         }
         .presentationDetents([.medium, .large])
         .onAppear { text = initial }
+        .onDisappear { speech.cancel() }
+        .onChange(of: speech.transcript) { _, spoken in
+            guard !spoken.isEmpty else { return }
+            let joined = dictationBase.isEmpty ? spoken : dictationBase + " " + spoken
+            text = String(joined.prefix(maxLength))
+        }
+    }
+
+    private var micButton: some View {
+        Button {
+            if speech.isRecording {
+                Haptics.tapLight()
+                speech.stop()
+            } else {
+                Haptics.tap()
+                dictationBase = text.trimmed
+                Task {
+                    do { try await speech.start() } catch { Toast.error("Can’t start voice typing", error.localizedDescription) }
+                }
+            }
+        } label: {
+            HStack(spacing: 8) {
+                ZStack {
+                    if speech.isRecording {
+                        Circle().fill(BFColor.red.opacity(0.25)).frame(width: 40, height: 40)
+                            .phaseAnimator([1.0, 1.35]) { v, s in v.scaleEffect(s) } animation: { _ in .easeInOut(duration: 0.7) }
+                    }
+                    Circle().fill(speech.isRecording ? AnyShapeStyle(BFColor.red) : AnyShapeStyle(BFGradient.aurora)).frame(width: 34, height: 34)
+                    Image(systemName: speech.isRecording ? "stop.fill" : "mic.fill")
+                        .font(.system(size: 14, weight: .bold)).foregroundStyle(.white)
+                        .contentTransition(.symbolEffect(.replace))
+                }
+                .frame(width: 40, height: 40)
+                Text(speech.isRecording ? "Listening… tap to stop" : "Speak instead of typing")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(speech.isRecording ? BFColor.red : BFColor.text2)
+            }
+        }
+        .buttonStyle(.pressable)
+        .animation(BFMotion.gentle, value: speech.isRecording)
+        .accessibilityLabel(speech.isRecording ? "Stop voice typing" : "Start voice typing")
     }
 }

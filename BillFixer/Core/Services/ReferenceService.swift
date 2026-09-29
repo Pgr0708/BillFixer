@@ -5,6 +5,10 @@ protocol ReferenceServicing {
     func fplEstimate(householdSize: Int, annualIncome: Money, state: String?) async throws -> FPLEstimate
     func searchProviders(_ query: String, state: String?) async throws -> [Provider]
     func financialAssistance(_ providerId: String) async throws -> FinancialAssistanceInfo
+    func financialProfile() async throws -> FinancialProfileResponse
+    /// Saves the profile and re-checks the user's open cases. `recheckedCases` says how many.
+    func saveFinancialProfile(householdSize: Int, annualIncome: Money, state: String?) async throws -> FinancialProfileResponse
+    func deleteFinancialProfile() async throws
 }
 
 struct ReferenceService: ReferenceServicing {
@@ -30,4 +34,14 @@ struct ReferenceService: ReferenceServicing {
     func financialAssistance(_ providerId: String) async throws -> FinancialAssistanceInfo {
         try await api.send(.get("providers/\(providerId)/financial-assistance"))
     }
+
+    func financialProfile() async throws -> FinancialProfileResponse { try await api.send(.get("me/financial-profile")) }
+
+    func saveFinancialProfile(householdSize: Int, annualIncome: Money, state: String?) async throws -> FinancialProfileResponse {
+        let body = FinancialProfileRequest(householdSize: householdSize, annualIncome: annualIncome.magnitude,
+                                           state: (state?.isEmpty ?? true) ? nil : state?.uppercased())
+        return try await api.send(Endpoint(method: .put, path: "me/financial-profile", body: try JSONCoding.encoder().encode(body)))
+    }
+
+    func deleteFinancialProfile() async throws { try await api.send(.delete("me/financial-profile")) }
 }

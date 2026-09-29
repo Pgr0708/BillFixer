@@ -12,6 +12,7 @@ import * as billRepo from '../repositories/billRepo.js';
 import * as findingRepo from '../repositories/findingRepo.js';
 import * as jobs from '../repositories/jobRepo.js';
 import * as ref from '../repositories/referenceRepo.js';
+import * as profiles from '../repositories/profileRepo.js';
 
 const STEP_DEFS = [
   { key: 'read', label: 'Reading your bill…' },
@@ -57,6 +58,12 @@ function toEngineInput({ bill, lines, eob, eobLines, gfe }) {
 }
 
 export async function startAnalysis(userId, caseId, context = {}) {
+  // No income in this request → use the user's saved financial profile (if they chose to save one).
+  // Household size alone can't produce an estimate, so income is what decides.
+  if (context.annualIncome == null) {
+    const p = await profiles.get(userId).catch(() => null);
+    if (p) context = { ...context, householdSize: Number(p.household_size), annualIncome: String(p.annual_income), state: context.state ?? p.state ?? undefined };
+  }
   const loaded = await billRepo.loadForAnalysis(caseId);
   if (!loaded.bill) throw conflict('Add and confirm your bill before running the analysis.', 'BILL_REQUIRED');
   const existing = await jobs.activeForCase(caseId, 'analysis');

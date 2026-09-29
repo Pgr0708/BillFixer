@@ -207,6 +207,12 @@ export const resolveCase = z.object({
 }).strict();
 
 // ── Reference ──
+export const financialProfile = z.object({
+  householdSize: z.number().int().min(1).max(20),
+  annualIncome: money,
+  state: US_STATE.nullish(),
+}).strict();
+
 export const providerSearchQuery = z.object({ q: text(100).min(2, 'Type at least 2 characters'), state: US_STATE.optional() });
 export const pricingQuery = z.object({
   codes: z.string().max(600).transform((s) => s.split(',').map((x) => x.trim().toUpperCase()).filter(Boolean))

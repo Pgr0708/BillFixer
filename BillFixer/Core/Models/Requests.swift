@@ -115,5 +115,6 @@ nonisolated struct CreateDeadlineRequest: Encodable, Sendable { let type: String
 nonisolated struct PatchDeadlineRequest: Encodable, Sendable { var label: String? = nil; var dueDate: String? = nil; var isCompleted: Bool? = nil }
 nonisolated struct CreateNoteRequest: Encodable, Sendable { let label: String }
 nonisolated struct ResolveCaseRequest: Encodable, Sendable { let resolution: String; let finalBalance: Money; let notes: String? }
+nonisolated struct FinancialProfileRequest: Encodable, Sendable { let householdSize: Int; let annualIncome: Money; let state: String? }
 nonisolated struct FPLEstimateRequest: Encodable, Sendable { let householdSize: Int; let annualIncome: Money; let state: String? }
 nonisolated struct EmptyBody: Encodable, Sendable {}

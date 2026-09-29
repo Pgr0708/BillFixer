@@ -87,6 +87,17 @@ CREATE TABLE IF NOT EXISTS subscriptions (
   CONSTRAINT fk_sub_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+-- Household size / income used for financial-assistance checks. One row per user; saved only when the
+-- user chooses "remember"; reused for every new bill; deleted with the account (cascade) or on request.
+CREATE TABLE IF NOT EXISTS financial_profiles (
+  user_id          CHAR(36)      NOT NULL PRIMARY KEY,
+  household_size   TINYINT UNSIGNED NOT NULL,
+  annual_income    DECIMAL(12,2) NOT NULL,
+  state            CHAR(2)       NULL,
+  updated_at       DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_finprofile_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 -- ── Reference: hospital directory (CMS Hospital General Information) ─────────
 CREATE TABLE IF NOT EXISTS providers (
   id                  CHAR(36)      NOT NULL PRIMARY KEY,

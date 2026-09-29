@@ -1,6 +1,6 @@
 import Foundation
 
-nonisolated enum HTTPMethod: String, Sendable { case get = "GET", post = "POST", patch = "PATCH", delete = "DELETE" }
+nonisolated enum HTTPMethod: String, Sendable { case get = "GET", post = "POST", put = "PUT", patch = "PATCH", delete = "DELETE" }
 
 nonisolated struct Endpoint: Sendable {
     var method: HTTPMethod

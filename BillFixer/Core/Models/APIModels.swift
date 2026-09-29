@@ -432,3 +432,18 @@ nonisolated struct FPLEstimate: Codable, Sendable, Hashable {
     let fplPercent: Int
     let sourceUrl: String?
 }
+
+// MARK: - Saved financial profile (household size + income, reused for every bill)
+
+nonisolated struct FinancialProfile: Codable, Sendable, Hashable {
+    let householdSize: Int
+    let annualIncome: Money
+    let state: String?
+    let updatedAt: Date?
+}
+
+nonisolated struct FinancialProfileResponse: Codable, Sendable {
+    let profile: FinancialProfile?
+    let estimate: FPLEstimate?
+    let recheckedCases: Int?
+}

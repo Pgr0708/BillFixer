@@ -46,6 +46,9 @@ final class CaptureFlowModel {
     var householdSize = 1
     var annualIncome = ""
     var state = ""
+    /// Save household size + income for future bills (and re-check open cases). On by default.
+    var rememberFinancials = true
+    private(set) var savedProfile: FinancialProfile?
 
     var isProcessing = false
     var processingProgress: Double = 0
@@ -56,6 +59,24 @@ final class CaptureFlowModel {
 
     private let services: AppServices
     init(services: AppServices) { self.services = services }
+
+    /// Prefill the money questions from the saved profile so returning users don't retype them.
+    func loadSavedProfile() async {
+        guard savedProfile == nil, let p = try? await services.reference.financialProfile().profile else { return }
+        savedProfile = p
+        if annualIncome.isEmpty {
+            householdSize = p.householdSize
+            annualIncome = p.annualIncome.apiString
+            if state.isEmpty { state = p.state ?? "" }
+        }
+    }
+
+    /// True when the answers differ from what's saved (so we only re-save — and re-check cases — on a real change).
+    private var financialsChanged: Bool {
+        guard let income = Money(parsing: annualIncome)?.magnitude else { return false }
+        guard let p = savedProfile else { return true }
+        return p.householdSize != householdSize || p.annualIncome != income || (p.state ?? "") != state.uppercased()
+    }
 
     var pages: [UIImage] { kind == .bill ? billPages : eobPages }
 
@@ -201,10 +222,20 @@ final class CaptureFlowModel {
             context.wasEmergency = wasEmergency
             context.hasInsurance = hasInsurance
             context.outOfNetwork = outOfNetwork ?? (eobDraft?.networkStatus == .outOfNetwork ? true : nil)
-            context.householdSize = householdSize
-            context.annualIncome = Money(parsing: annualIncome)?.magnitude
+            // Only send household size together with income; with no income the server uses the saved profile.
+            if let income = Money(parsing: annualIncome)?.magnitude {
+                context.householdSize = householdSize
+                context.annualIncome = income
+            }
             context.state = state.isEmpty ? nil : state.uppercased()
             _ = try await services.analysis.start(caseId, context: context)
+
+            if rememberFinancials, financialsChanged, let income = Money(parsing: annualIncome)?.magnitude {
+                // Best effort: the analysis already has the answers; saving only helps future bills.
+                if let saved = try? await services.reference.saveFinancialProfile(householdSize: householdSize, annualIncome: income, state: state) {
+                    savedProfile = saved.profile
+                }
+            }
 
             // Documents are no longer needed: drop the images from memory.
             billPages = []

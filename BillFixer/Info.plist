@@ -14,6 +14,10 @@
 	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>BillFixer uses the camera to scan your medical bill or EOB. Pages are read on your iPhone and never uploaded.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>BillFixer uses the microphone only while you dictate a call note. Audio isn’t recorded or uploaded.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>BillFixer turns what you say into text for your call notes, on your iPhone whenever possible.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>

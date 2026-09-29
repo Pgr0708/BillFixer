@@ -1,6 +1,8 @@
 import SwiftUI
 
 /// Screen 27 — Federal Poverty Level estimator. The server computes the % from HHS guidelines (official data).
+/// Not tied to one case: the answers can be saved to the user's profile, reused for every new bill, and
+/// saving re-checks all unresolved cases.
 struct FinancialAssistanceView: View {
     let caseId: String?
     @Environment(\.services) private var services
@@ -13,6 +15,16 @@ struct FinancialAssistanceView: View {
     @State private var loading = false
     @State private var debounce: Task<Void, Never>?
     @State private var link: WebLink?
+    @State private var saved: FinancialProfile?
+    @State private var saving = false
+    @State private var confirmForget = false
+    @State private var incomeMax: Double = 250_000
+
+    private var currentIncome: Money { Money(Decimal(Int(income))) }
+    private var matchesSaved: Bool {
+        guard let saved else { return false }
+        return saved.householdSize == household && saved.annualIncome == currentIncome && (saved.state ?? "") == state.uppercased()
+    }
 
     private var tier: (String, String, Color) {
         guard let pct = estimate?.fplPercent else { return ("", "", BFColor.text3) }
@@ -38,7 +50,7 @@ struct FinancialAssistanceView: View {
                     VStack(alignment: .leading, spacing: 6) {
                         HStack { Text("Yearly income").font(.system(size: 15, weight: .medium)); Spacer()
                             Text(Money(Decimal(Int(income))).formattedCompact).font(BFFont.money(20)).contentTransition(.numericText()) }
-                        Slider(value: $income, in: 0...250_000, step: 1_000).tint(BFColor.teal)
+                        Slider(value: $income, in: 0...incomeMax, step: 1_000).tint(BFColor.teal)
                             .hapticOnChange(income)
                     }
                     BFTextField(label: "State (for Alaska & Hawaii guidelines)", text: $state, prompt: "e.g. TX", icon: "map",
@@ -67,6 +79,8 @@ struct FinancialAssistanceView: View {
                     .animation(BFMotion.gentle, value: estimate.fplPercent)
                 }
 
+                savedCard
+
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Documents to gather").font(BFFont.title3()).foregroundStyle(BFColor.text1)
                     ForEach(["Recent pay stubs or tax return", "Proof of household size", "Bank statements (some hospitals)", "The bill and account number"], id: \.self) {
@@ -90,7 +104,70 @@ struct FinancialAssistanceView: View {
         .scenicBackground(.assistance)
         .navigationBarTitleDisplayMode(.inline)
         .webSheet($link)
-        .task { await fetch() }
+        .task { await loadSaved(); await fetch() }
+        .confirmationDialog("Forget your saved income?", isPresented: $confirmForget, titleVisibility: .visible) {
+            Button("Forget Saved Info", role: .destructive) { Task { await forget() } }
+        } message: { Text("New bills won’t be checked for financial assistance until you enter it again.") }
+    }
+
+    // MARK: - Saved profile
+
+    private var savedCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 10) {
+                IconTile(symbol: saved == nil ? "person.crop.circle.badge.plus" : "checkmark.shield.fill",
+                         tint: saved == nil ? BFColor.blue : BFColor.green, fill: saved == nil ? BFColor.blueSoft : BFColor.greenSoft, size: 40)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(saved == nil ? "Use this for all my bills" : (matchesSaved ? "Saved — used for all your bills" : "Update your saved info"))
+                        .font(.system(size: 15, weight: .semibold)).foregroundStyle(BFColor.text1)
+                    Text(saved == nil ? "We’ll check every new bill automatically and re-check your open cases."
+                                      : "Every new bill and your unresolved cases use these numbers.")
+                        .font(.system(size: 12)).foregroundStyle(BFColor.text3)
+                }
+            }
+            if saved == nil || !matchesSaved {
+                BFButton(title: saved == nil ? "Save & Check My Bills" : "Update & Re-check", icon: "arrow.triangle.2.circlepath",
+                         kind: .teal, size: .md, isLoading: saving, isDisabled: Validation.stateCode(state) != nil) {
+                    Task { await save() }
+                }
+            }
+            if saved != nil {
+                Button("Forget saved info") { confirmForget = true }
+                    .font(.system(size: 13, weight: .semibold)).foregroundStyle(BFColor.red)
+            }
+        }
+        .cardStyle(padding: 16, radius: 18)
+        .animation(BFMotion.gentle, value: matchesSaved)
+    }
+
+    private func loadSaved() async {
+        guard let p = try? await services.reference.financialProfile().profile else { return }
+        saved = p
+        household = p.householdSize
+        let value = NSDecimalNumber(decimal: p.annualIncome.value).doubleValue
+        incomeMax = max(250_000, (value / 1_000).rounded(.up) * 1_000)
+        income = value
+        state = p.state ?? ""
+    }
+
+    private func save() async {
+        saving = true
+        defer { saving = false }
+        do {
+            let r = try await services.reference.saveFinancialProfile(householdSize: household, annualIncome: currentIncome, state: state)
+            saved = r.profile
+            if let e = r.estimate { estimate = e }
+            let n = r.recheckedCases ?? 0
+            Toast.success("Saved", n > 0 ? "Re-checking \(n) open case\(n == 1 ? "" : "s") with your numbers." : "Every new bill will use these numbers.")
+        } catch { Toast.error(error) }
+    }
+
+    private func forget() async {
+        do {
+            try await services.reference.deleteFinancialProfile()
+            withAnimation(BFMotion.gentle) { saved = nil }
+            Toast.info("Saved income removed")
+        } catch { Toast.error(error) }
     }
 
     /// Slider moves fire many changes — debounce to one request.
