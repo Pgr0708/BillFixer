@@ -67,15 +67,35 @@ struct LetterView: View {
     }
 
     private var generatingCard: some View {
-        VStack(spacing: 16) {
-            ForEach(0..<8, id: \.self) { i in SkeletonBlock(height: 12).frame(maxWidth: i % 3 == 2 ? 200 : .infinity) }
-            HStack(spacing: 10) {
+        VStack(spacing: 20) {
+            // Animated circular loader
+            ZStack {
+                Circle()
+                    .fill(BFColor.blueSoft)
+                    .frame(width: 72, height: 72)
+                Circle()
+                    .fill(BFColor.bluePale)
+                    .frame(width: 90, height: 90)
+                    .overlay { Circle().strokeBorder(BFColor.line, lineWidth: 1) }
                 ProgressView()
-                Text(progressText).font(BFFont.subheadline).foregroundStyle(BFColor.text2)
+                    .scaleEffect(1.3)
+                    .tint(BFColor.blue)
             }
-            .padding(.top, 6)
+            Text(progressText)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(BFColor.text2)
+                .multilineTextAlignment(.center)
+            VStack(spacing: 8) {
+                ForEach(0..<5, id: \.self) { i in
+                    SkeletonBlock(height: 12).frame(maxWidth: i == 4 ? 160 : .infinity)
+                }
+            }
         }
-        .cardStyle(padding: 20, radius: 20)
+        .padding(24)
+        .frame(maxWidth: .infinity)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .shadow(color: .black.opacity(0.05), radius: 8, y: 3)
     }
 
     private func header(_ l: Letter) -> some View {
@@ -121,28 +141,128 @@ struct LetterView: View {
     }
 
     private func actions(_ l: Letter) -> some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 12) {
+            // Copy + Share row
             HStack(spacing: 10) {
-                BFButton(title: "Copy", icon: "doc.on.doc", kind: .outline, size: .md) {
+                Button {
                     UIPasteboard.general.string = draft
                     Toast.success("Copied to clipboard")
+                } label: {
+                    HStack(spacing: 8) {
+                        Circle()
+                            .fill(BFColor.blueSoft)
+                            .frame(width: 30, height: 30)
+                            .overlay {
+                                Image(systemName: "doc.on.doc")
+                                    .font(.system(size: 12, weight: .bold))
+                                    .foregroundStyle(BFColor.blue)
+                            }
+                        Text("Copy")
+                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                            .foregroundStyle(BFColor.blue)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 50)
+                    .background(Color.white)
+                    .clipShape(Capsule())
+                    .overlay(Capsule().strokeBorder(BFColor.blue, lineWidth: 1.5))
+                    .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
                 }
+                .buttonStyle(.plain)
+
                 if let pdfURL {
                     ShareLink(item: pdfURL) {
-                        Label("Share PDF", systemImage: "square.and.arrow.up").font(BFFont.label(15)).foregroundStyle(.white)
-                            .frame(maxWidth: .infinity).frame(height: 48)
-                            .background(BFGradient.blue, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                        HStack(spacing: 8) {
+                            Circle()
+                                .fill(.white.opacity(0.2))
+                                .frame(width: 30, height: 30)
+                                .overlay {
+                                    Image(systemName: "square.and.arrow.up")
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundStyle(.white)
+                                }
+                            Text("Share PDF")
+                                .font(.system(size: 15, weight: .bold, design: .rounded))
+                                .foregroundStyle(.white)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(LinearGradient(colors: [Color(hex: 0x2E7DF6), BFColor.navy],
+                                                   startPoint: .leading, endPoint: .trailing))
+                        .clipShape(Capsule())
+                        .shadow(color: Color(hex: 0x2E7DF6).opacity(0.3), radius: 8, y: 4)
                     }
                     .buttonStyle(.pressable)
                 } else {
-                    BFButton(title: "Share", icon: "square.and.arrow.up", kind: .blue, size: .md) { makePDF(l) }
+                    Button { makePDF(l) } label: {
+                        HStack(spacing: 8) {
+                            Circle()
+                                .fill(.white.opacity(0.2))
+                                .frame(width: 30, height: 30)
+                                .overlay {
+                                    Image(systemName: "square.and.arrow.up")
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundStyle(.white)
+                                }
+                            Text("Share")
+                                .font(.system(size: 15, weight: .bold, design: .rounded))
+                                .foregroundStyle(.white)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(LinearGradient(colors: [Color(hex: 0x2E7DF6), BFColor.navy],
+                                                   startPoint: .leading, endPoint: .trailing))
+                        .clipShape(Capsule())
+                        .shadow(color: Color(hex: 0x2E7DF6).opacity(0.3), radius: 8, y: 4)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
+
+            // Mark sent — full width capsule (teal)
             if l.sentAt == nil {
-                BFButton(title: "I Sent This Letter", icon: "paperplane.fill", kind: .teal) { Task { await markSent(l) } }
+                Button { Task { await markSent(l) } } label: {
+                    HStack(spacing: 8) {
+                        Circle()
+                            .fill(.white.opacity(0.2))
+                            .frame(width: 30, height: 30)
+                            .overlay {
+                                Image(systemName: "paperplane.fill")
+                                    .font(.system(size: 12, weight: .bold))
+                                    .foregroundStyle(.white)
+                            }
+                        Text("I Sent This Letter")
+                            .font(.system(size: 16, weight: .bold, design: .rounded))
+                            .foregroundStyle(.white)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 54)
+                    .background(LinearGradient(colors: [Color(hex: 0x00BFA5), Color(hex: 0x00897B)],
+                                               startPoint: .leading, endPoint: .trailing))
+                    .clipShape(Capsule())
+                    .shadow(color: Color(hex: 0x00BFA5).opacity(0.35), radius: 12, y: 6)
+                }
+                .buttonStyle(.plain)
             }
-            Text("Review before sending. Send by certified mail or the provider’s portal and keep a copy.")
-                .font(.system(size: 12)).foregroundStyle(BFColor.text3).multilineTextAlignment(.center)
+
+            // Disclaimer with circular info icon
+            HStack(spacing: 10) {
+                Circle()
+                    .fill(BFColor.blueSoft)
+                    .frame(width: 28, height: 28)
+                    .overlay {
+                        Image(systemName: "info")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(BFColor.blue)
+                    }
+                Text("Review before sending. Send by certified mail or via the provider's portal and keep a copy.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(BFColor.text3)
+                    .lineSpacing(2)
+            }
+            .padding(12)
+            .background(BFColor.bluePale)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
     }
 
