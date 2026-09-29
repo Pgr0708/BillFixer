@@ -1,37 +1,21 @@
 import SwiftUI
 
-/// Brand mark: a bill with a teal check — drawn as vectors so it's crisp at any size.
+/// Brand mark: the real app icon (Assets › AppLogo, a copy of AppIcon — iOS can't load the AppIcon set in code),
+/// with the iOS icon corner shape. `tile` adds the floating shadow used on hero screens.
 struct LogoMark: View {
     var size: CGFloat = 72
     var tile = true
 
     var body: some View {
-        ZStack {
-            if tile {
-                RoundedRectangle(cornerRadius: size * 0.3, style: .continuous)
-                    .fill(.white)
-                    .bfShadow(BFShadow(color: .black.opacity(0.16), radius: size * 0.22, y: size * 0.1))
-            }
-            DocumentShape()
-                .fill(LinearGradient(colors: [BFColor.navy2, BFColor.navy], startPoint: .top, endPoint: .bottom))
-                .frame(width: size * 0.44, height: size * 0.54)
-                .overlay(alignment: .topLeading) {
-                    VStack(alignment: .leading, spacing: size * 0.05) {
-                        ForEach([0.6, 0.8, 0.45], id: \.self) { w in
-                            Capsule().fill(.white.opacity(0.85)).frame(width: size * 0.26 * w, height: size * 0.035)
-                        }
-                    }
-                    .padding(.leading, size * 0.07).padding(.top, size * 0.14)
-                }
-            Circle()
-                .fill(BFGradient.teal)
-                .frame(width: size * 0.27, height: size * 0.27)
-                .overlay(Image(systemName: "checkmark").font(.system(size: size * 0.13, weight: .black)).foregroundStyle(.white))
-                .overlay(Circle().strokeBorder(.white, lineWidth: size * 0.025))
-                .offset(x: size * 0.17, y: size * 0.17)
-        }
-        .frame(width: size, height: size)
-        .accessibilityHidden(true)
+        Image("AppLogo")
+            .resizable()
+            .interpolation(.high)
+            .scaledToFill()
+            .frame(width: size, height: size)
+            .clipShape(RoundedRectangle(cornerRadius: size * 0.2237, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: size * 0.2237, style: .continuous).strokeBorder(.white.opacity(0.15), lineWidth: 0.5))
+            .shadow(color: .black.opacity(tile ? 0.2 : 0.08), radius: tile ? size * 0.18 : size * 0.06, y: tile ? size * 0.08 : size * 0.02)
+            .accessibilityHidden(true)
     }
 }
 

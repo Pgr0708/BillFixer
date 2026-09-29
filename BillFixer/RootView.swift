@@ -1,6 +1,6 @@
 //
 //  RootView.swift
-//  App flow: onboarding → paywall (once) → notification → customization → main tabs.
+//  App flow: onboarding → SIGN IN (required) → paywall (once) → notification → customization → main tabs.
 //
 
 import SwiftUI
@@ -9,6 +9,7 @@ import SwiftUI
 enum AppFlow: Equatable {
     case loading
     case onboarding
+    case signIn
     case paywall
     case notification
     case customization
@@ -17,12 +18,21 @@ enum AppFlow: Equatable {
 
 struct RootView: View {
     @EnvironmentObject private var settings: SettingsManager
+    @Environment(AppSession.self) private var session
 
     /// Evaluate the current step the user should be on.
     /// Each step is shown exactly once — gated by its `hasSeenX` flag.
     private var flow: AppFlow {
         // 1. Onboarding — very first launch
         if !settings.hasSeenOnboarding         { return .onboarding }
+
+        // Sign in is mandatory: every case, bill and letter belongs to an account.
+        // Also where a signed-out or expired session always lands.
+        switch session.phase {
+        case .launching: return .loading
+        case .signedOut: return .signIn
+        case .signedIn:  break
+        }
 
         // 2. Paywall — shown once right after onboarding
         if !settings.hasSeenPaywall            { return .paywall }
@@ -48,6 +58,10 @@ struct RootView: View {
             case .onboarding:
                 OnBoardingScreenView()
                     .transition(.opacity)
+
+            case .signIn:
+                SignInView()
+                    .transition(.move(edge: .trailing).combined(with: .opacity))
 
             case .paywall:
                 PaywallScreenView(reason: .general, isOnboarding: true) {

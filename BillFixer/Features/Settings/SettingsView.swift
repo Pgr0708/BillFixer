@@ -134,7 +134,7 @@ struct SettingsView: View {
                     Text(session.user?.displayName ?? session.user?.firstName ?? "Your Account")
                         .font(.system(size: 17, weight: .bold, design: .rounded))
                         .foregroundStyle(BFColor.text1)
-                    Text(session.user?.email ?? "Signed in with Apple")
+                    Text(signInLine)
                         .font(.system(size: 13))
                         .foregroundStyle(BFColor.text3)
                 }
@@ -331,6 +331,19 @@ struct SettingsView: View {
     }
 
     // MARK: - Actions
+
+    /// "Signed in with Apple · name@example.com" — from the account's real sign-in method, never assumed.
+    private var signInLine: String {
+        let method: String
+        switch session.user?.signInMethod {
+        case "apple": method = "Signed in with Apple"
+        case "email": method = "Signed in with email"
+        default: method = "Signed in"
+        }
+        guard let email = session.user?.email, !email.isEmpty else { return method }
+        // Apple "Hide My Email" relay addresses aren't meaningful to show.
+        return email.hasSuffix("privaterelay.appleid.com") ? "\(method) · Hidden email" : "\(method) · \(email)"
+    }
 
     private var planLabel: String {
         guard session.isPremium else { return "Free" }

@@ -51,7 +51,7 @@ final class ProfilePhotoStore {
     }
 }
 
-/// Circular avatar: the saved photo, or the user's initial on the brand gradient.
+/// Circular avatar: the saved photo, or the app icon when there is none.
 struct ProfileAvatar: View {
     var size: CGFloat = 44
     @Environment(AppSession.self) private var session
@@ -62,10 +62,8 @@ struct ProfileAvatar: View {
             if let image = photos.image {
                 Image(uiImage: image).resizable().scaledToFill()
             } else {
-                LinearGradient(colors: [Color(hex: 0x0B2B5C), Color(hex: 0x2E7DF6)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                Text(session.user?.initial ?? "U")
-                    .font(.system(size: size * 0.4, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white)
+                // No photo yet: show the app icon rather than a letter.
+                Image("AppLogo").resizable().scaledToFill()
             }
         }
         .frame(width: size, height: size)

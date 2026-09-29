@@ -34,16 +34,7 @@ struct NotificationScreenView: View {
                 // Top bar
                 HStack {
                     HStack(spacing: 8) {
-                        Circle()
-                            .fill(LinearGradient(
-                                colors: [Color(hex: "#0F2B5B"), Color(hex: "#00B4A0")],
-                                startPoint: .topLeading, endPoint: .bottomTrailing))
-                            .frame(width: 32, height: 32)
-                            .overlay {
-                                Text("B")
-                                    .font(.system(size: 16, weight: .black, design: .rounded))
-                                    .foregroundStyle(.white)
-                            }
+                        LogoMark(size: 32, tile: false)
                         Text("BillFixer")
                             .font(.system(size: 19, weight: .black, design: .rounded))
                             .foregroundStyle(Color(light: 0x0F2B5B, dark: 0xFFFFFF))

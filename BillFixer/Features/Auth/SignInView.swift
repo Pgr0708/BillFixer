@@ -14,8 +14,8 @@ struct SignInView: View {
         VStack(spacing: 0) {
             Spacer(minLength: 20)
             LogoMark(size: 76).staggeredAppear(0)
-            Text("BillFixer").font(BFFont.display(34)).foregroundStyle(BFColor.navy).padding(.top, 14).staggeredAppear(1)
-                .foregroundStyle(scheme == .dark ? .white : BFColor.navy)
+            Text("BillFixer").font(BFFont.display(34)).foregroundStyle(scheme == .dark ? Color.white : BFColor.navy)
+                .padding(.top, 14).staggeredAppear(1)
             Text("Your medical bill, decoded.").font(.system(size: 16, weight: .medium)).foregroundStyle(BFColor.text2).padding(.top, 4).staggeredAppear(2)
             Spacer(minLength: 12)
             HospitalScene().staggeredAppear(3)
