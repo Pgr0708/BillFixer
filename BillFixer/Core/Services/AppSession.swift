@@ -88,6 +88,7 @@ final class AppSession {
         subscription = .free
         phase = .signedOut
         await DiskCache.shared.clear()
+        await APIClient.shared.clearHTTPCache()
         ReminderScheduler.cancelAll()
         ProfilePhotoStore.shared.clearAll()
         await store.reset()

@@ -14,8 +14,10 @@ protocol ReferenceServicing {
 struct ReferenceService: ReferenceServicing {
     var api: APIClient = .shared
 
+    var cache: DiskCache = .shared
+
     func rights() async throws -> [RightInfo] {
-        let r: RightsResponse = try await api.send(.get("reference/rights"))
+        let r: RightsResponse = try await cache.fetch("rights", maxAge: 86_400) { try await api.send(.get("reference/rights")) }
         return r.rights
     }
 
@@ -35,13 +37,20 @@ struct ReferenceService: ReferenceServicing {
         try await api.send(.get("providers/\(providerId)/financial-assistance"))
     }
 
-    func financialProfile() async throws -> FinancialProfileResponse { try await api.send(.get("me/financial-profile")) }
+    func financialProfile() async throws -> FinancialProfileResponse {
+        try await cache.fetch("financial-profile") { try await api.send(.get("me/financial-profile")) }
+    }
 
     func saveFinancialProfile(householdSize: Int, annualIncome: Money, state: String?) async throws -> FinancialProfileResponse {
         let body = FinancialProfileRequest(householdSize: householdSize, annualIncome: annualIncome.magnitude,
                                            state: (state?.isEmpty ?? true) ? nil : state?.uppercased())
-        return try await api.send(Endpoint(method: .put, path: "me/financial-profile", body: try JSONCoding.encoder().encode(body)))
+        let r: FinancialProfileResponse = try await api.send(Endpoint(method: .put, path: "me/financial-profile", body: try JSONCoding.encoder().encode(body)))
+        await cache.save(r, key: "financial-profile")
+        return r
     }
 
-    func deleteFinancialProfile() async throws { try await api.send(.delete("me/financial-profile")) }
+    func deleteFinancialProfile() async throws {
+        try await api.send(.delete("me/financial-profile"))
+        await cache.remove("financial-profile")
+    }
 }

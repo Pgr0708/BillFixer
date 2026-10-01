@@ -50,6 +50,9 @@ actor APIClient {
         _ = try await perform(endpoint)
     }
 
+    /// Sign-out: drop HTTP-cached responses too.
+    func clearHTTPCache() { session.configuration.urlCache?.removeAllCachedResponses() }
+
     // MARK: Core
 
     private func makeRequest(_ ep: Endpoint) async throws -> URLRequest {
